@@ -1,16 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<!-- Refer to documentation here for constraint layout -->
+<!--https://developer.android.com/training/constraint-layout/index.html&ndash;&gt;-->
+<ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MapsActivity">
+<!--
+second line (xmlns:map="http://schemas.android.com/apk/res-auto") is kept until we build. It may be
+used in the future or not, but we'll keep it there just in case.-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Test"/>
+
+    </LinearLayout>
 
     <fragment
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="500dp"
         android:id="@+id/google_map"
         android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
-</RelativeLayout>
+</ConstraintLayout>
