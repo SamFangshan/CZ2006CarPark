@@ -24,6 +24,9 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -61,6 +64,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    private void showAllCarparks(GoogleMap googleMap) {
+        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
+                "127.0.0.1", 3306, "cz2006", "cz2006", "cz2006ala");
+        ArrayList<CarparkEntity> carparkList = null;
+        try {
+            carparkList = con.getAllCarparkLocations();
+        } catch (SQLException e) {
+            Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        for (CarparkEntity e : carparkList) {
+            double lat = Double.parseDouble(e.getInformation("xCoord"));
+            double lon = Double.parseDouble(e.getInformation("yCoord"));
+            String cpn = e.getInformation("carParkNo");
+            LatLng latLng = new LatLng(lat, lon);
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn);
+            googleMap.addMarker((markerOptions));
+        }
+    }
+
 
     /**
      * Manipulates the map once available.
@@ -78,6 +101,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
         googleMap.addMarker((markerOptions));
+
+        showAllCarparks(googleMap);
     }
 
     @Override
