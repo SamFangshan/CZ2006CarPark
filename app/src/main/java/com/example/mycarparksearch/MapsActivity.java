@@ -5,6 +5,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -18,17 +19,22 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
     Location currentLocation;
     FusedLocationProviderClient fusedLocationProviderClient;
+    EditText et;
+    FloatingActionButton fab;
     private static final int REQUEST_CODE = 101;
 
     @Override
@@ -36,6 +42,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Sets button colour to null
+        fab = findViewById(R.id.floatingActionButtonMapActivityOptions);
+        fab.setBackgroundTintList(null);
+        et = findViewById(R.id.locationEditText);
+
         fetchLastLocation();
     }
 
@@ -60,6 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+
 
 
     /**
@@ -88,6 +101,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     fetchLastLocation();
                 }
                 break;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v == et) {
+            et.setText("");
+            Intent intent = new Intent(this, SearchForAddressActivity.class);
+            startActivity(intent);
         }
     }
 }
