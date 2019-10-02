@@ -1,4 +1,7 @@
 package com.example.mycarparksearch;
+
+import android.util.Log;
+
 import java.sql.*;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -6,6 +9,7 @@ import com.jcraft.jsch.Session;
 
 public class SQLControl {
     private static final int DEFAULT_SSH_PORT = 22;
+    private static final int PORT = 53009;
 
     private String sshHost;
     private String sshUsername;
@@ -39,7 +43,7 @@ public class SQLControl {
         session.setPassword(sshPassword);
         session.setConfig("StrictHostKeyChecking", "no");
         session.connect();
-        session.setPortForwardingL(dbPort, dbHost, dbPort);
+        session.setPortForwardingL(PORT, dbHost, dbPort);
     }
 
     private boolean isSSHConnected() {
@@ -51,20 +55,28 @@ public class SQLControl {
             try {
                 setSSHConnection();
             } catch (JSchException e) {
-                System.err.print(e);
+                Log.d("CREATION", e.toString());
+                close();
+                return false;
             }
         }
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String url = "jdbc:mysql://" + dbHost +":" + dbPort + "/";
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://" + dbHost +":" + PORT + "/";
             try {
                 conn = DriverManager.getConnection(url+dbName, dbUsername, dbPassword);
             } catch (SQLException e) {
-                System.out.println(e.toString());
+                //Log.d("CREATION", e.getStackTrace().toString());
+                Log.d("CREATION", "H");
+                close();
                 return false;
             }
             return true;
-        } catch (ClassNotFoundException e) {return false;}
+        } catch (ClassNotFoundException e) {
+            Log.d("CREATION", "class");
+            close();
+            return false;
+        }
 
     }
 
