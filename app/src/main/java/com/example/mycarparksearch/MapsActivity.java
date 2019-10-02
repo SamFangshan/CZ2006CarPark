@@ -17,7 +17,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -37,7 +36,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     Location currentLocation;
     FusedLocationProviderClient fusedLocationProviderClient;
-    ArrayList<CarparkEntity> carparkList;
     private static final int REQUEST_CODE = 101;
 
     @Override
@@ -80,19 +78,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void getAllCarparks() {
+    private ArrayList<CarparkEntity> getAllCarparks() {
         CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
                 "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
-        carparkList = null;
+        ArrayList<CarparkEntity> carparkList = null;
         try {
             carparkList = con.getAllCarparkLocations();
         } catch (SQLException e) {
             Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
+        return carparkList;
     }
 
-    private void showAllCarparks(GoogleMap googleMap) {
+    private void showAllCarparks(GoogleMap googleMap, ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
             double lat = Double.parseDouble(e.getInformation("xCoord"));
             double lon = Double.parseDouble(e.getInformation("yCoord"));
@@ -115,13 +114,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
             return;
         }
+        ArrayList<CarparkEntity> carparkList = null;
         try {
-            new GetAllCarparks().execute().get();
+            carparkList = (ArrayList<CarparkEntity>)(new GetAllCarparks().execute().get());
         } catch (ExecutionException | InterruptedException e) {
             Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
         }
         if (carparkList != null) {
-            showAllCarparks(googleMap);
+            showAllCarparks(googleMap, carparkList);
         }
     }
 
@@ -140,8 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private class GetAllCarparks extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            getAllCarparks();
-            return null;
+            return getAllCarparks();
         }
     }
 }

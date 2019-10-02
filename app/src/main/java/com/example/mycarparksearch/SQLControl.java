@@ -37,7 +37,7 @@ public class SQLControl {
         this.session = null;
     }
 
-    public void setSSHConnection() throws JSchException {
+    private void setSSHConnection() throws JSchException {
         JSch jsch = new JSch();
         session = jsch.getSession(sshUsername, sshHost, DEFAULT_SSH_PORT);
         session.setPassword(sshPassword);
