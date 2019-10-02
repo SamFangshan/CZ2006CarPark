@@ -20,28 +20,33 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     Location currentLocation;
     FusedLocationProviderClient fusedLocationProviderClient;
     EditText et;
     FloatingActionButton fab;
+    ImageButton clbutton;
     private static final int REQUEST_CODE = 101;
 
     @Override
@@ -54,6 +59,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fab = findViewById(R.id.floatingActionButtonMapActivityOptions);
         fab.setBackgroundTintList(null);
         et = findViewById(R.id.locationEditText);
+
+        clbutton = findViewById(R.id.clbutton);
+        clbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fetchLastLocation();
+                showLastLocation();
+            }
+        });
 
         fetchLastLocation();
     }
@@ -90,6 +104,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    private void showLastLocation() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        mMap.addMarker((markerOptions));
+    }
+
     private ArrayList<CarparkEntity> getAllCarparks() {
         CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
                 "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
@@ -103,24 +125,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return carparkList;
     }
 
-    private void showAllCarparks(GoogleMap googleMap, ArrayList<CarparkEntity> carparkList) {
+    private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
             double lat = Double.parseDouble(e.getInformation("xCoord"));
             double lon = Double.parseDouble(e.getInformation("yCoord"));
             String cpn = e.getInformation("carParkNo");
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
-            googleMap.addMarker((markerOptions));
+            mMap.addMarker((markerOptions));
         }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        googleMap.addMarker((markerOptions));
+        mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
+        showLastLocation();
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -133,7 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
         }
         if (carparkList != null) {
-            showAllCarparks(googleMap, carparkList);
+            showAllCarparks(carparkList);
         }
     }
 
@@ -155,6 +175,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Intent intent = new Intent(this, SearchForAddressActivity.class);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        String carParkNo = marker.getTitle();
+        BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
+        ImageButton infobutton = findViewById(R.id.infobutton);
+        TextView infotext = findViewById(R.id.infotext);
+        infobutton.setBackgroundTintList(null);
+        bottomAppBar.setVisibility(View.VISIBLE);
+        infobutton.setVisibility(View.VISIBLE);
+        infotext.setVisibility(View.VISIBLE);
+        infobutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
+                Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
+                MapsActivity.this.startActivity(intent);
+            }
+        });
+        return true;
     }
 
     // task that requires Internet access

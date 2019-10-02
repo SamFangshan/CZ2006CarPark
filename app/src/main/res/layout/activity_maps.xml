@@ -23,12 +23,57 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="0dp"
             map:layout_constraintBottom_toBottomOf="parent"
             map:layout_constraintEnd_toEndOf="parent"
             map:layout_constraintHorizontal_bias="0.0"
             map:layout_constraintStart_toStartOf="parent"
             map:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/clbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="200dp"
+            android:background="@drawable/button_background"
+            android:onClick="onClick"
+            android:src="@drawable/clbutton"
+            android:visibility="visible"
+            map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:id="@+id/bottomAppBar"
+            style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+            android:layout_width="405dp"
+            android:layout_height="125dp"
+            android:layout_gravity="bottom"
+            android:backgroundTint="@color/common_google_signin_btn_text_dark_default"
+            android:visibility="gone"
+            map:layout_constraintBottom_toBottomOf="@+id/google_map"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="parent" />
+
+        <ImageButton
+            android:id="@+id/infobutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/info"
+            android:visibility="gone"
+            map:layout_constraintBottom_toBottomOf="@+id/bottomAppBar"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="@+id/bottomAppBar"
+            map:layout_constraintTop_toTopOf="@+id/bottomAppBar" />
+
+        <TextView
+            android:id="@+id/infotext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detailed Info"
+            android:textColor="#000"
+            android:visibility="gone"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="parent"
+            map:layout_constraintTop_toBottomOf="@+id/infobutton" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
