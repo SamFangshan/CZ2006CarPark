@@ -98,7 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             double lon = Double.parseDouble(e.getInformation("yCoord"));
             String cpn = e.getInformation("carParkNo");
             LatLng latLng = new LatLng(lat, lon);
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn);
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
             googleMap.addMarker((markerOptions));
         }
     }
