@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Refer to documentation here for constraint layout -->
+<!--https://developer.android.com/training/constraint-layout/index.html&ndash;&gt;-->
+
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
@@ -7,10 +10,71 @@
     android:layout_height="match_parent"
     tools:context=".MapsActivity">
 
-    <fragment
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/google_map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        android:layout_height="match_parent">
+
+        <!--
+        second line (xmlns:map="http://schemas.android.com/apk/res-auto") is kept until we build. It may be
+        used in the future or not, but we'll keep it there just in case.-->
+
+        <fragment
+            android:id="@+id/google_map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintHorizontal_bias="0.0"
+            map:layout_constraintStart_toStartOf="parent"
+            map:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        map:layout_constraintTop_toTopOf="parent">
+
+        <!--<TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test"
+            android:textSize="40sp"/>-->
+
+        <!--<ImageButton
+            android:layout_width="20pt"
+            android:layout_height="20pt"
+            android:src="@drawable/main_menu_options_button"
+            android:scaleType="matrix"
+            />-->
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingActionButtonMapActivityOptions"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:scaleType="fitEnd"
+            android:src="@drawable/main_menu_options_button"/>
+
+        <EditText
+            android:id="@+id/locationEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/findLocationText"
+            android:ems="20"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:inputType="textPostalAddress"/>
+        <!--        android:backgroundTint="@drawable/common_google_signin_btn_icon_light_normal_background"-->
+        <!--        android:textColor="@drawable/common_google_signin_btn_text_light_normal"-->
+
+    </LinearLayout>
 
 </RelativeLayout>
