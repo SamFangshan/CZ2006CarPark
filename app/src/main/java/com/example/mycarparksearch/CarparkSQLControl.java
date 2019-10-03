@@ -97,9 +97,9 @@ public class CarparkSQLControl extends SQLControl {
         resultMD = result.getMetaData();
         result.next();
         HashMap<String, Integer> lotMap = new HashMap<String, Integer>();
-        for (int i = 1; i <= resultMD.getColumnCount(); i++) {
-            lotMap.put(resultMD.getColumnName(i), result.getInt(resultMD.getColumnName(i)));
-        }
+        lotMap.put("carLotAvail", result.getInt("carLotAvail"));
+        lotMap.put("motorLotAvail", result.getInt("motorLotAvail"));
+        lotMap.put("heavyLotAvail", result.getInt("heavyLotAvail"));
         result.close();
 
         CarparkEntity carparkEntity = new CarparkEntity(carMap, lotMap);

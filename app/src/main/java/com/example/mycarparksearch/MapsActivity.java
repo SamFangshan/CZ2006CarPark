@@ -48,6 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     FloatingActionButton fab;
     ImageButton clbutton;
     private static final int REQUEST_CODE = 101;
+    public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +94,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
+                    location.setLatitude(1.276307);
+                    location.setLongitude(103.840811);
                     currentLocation = location;
                     Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                     +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
@@ -150,7 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             carparkList = (ArrayList<CarparkEntity>)(new GetAllCarparks().execute().get());
         } catch (ExecutionException | InterruptedException e) {
-            Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Failed to get car park locations!\nTask interrupted.", Toast.LENGTH_SHORT).show();
         }
         if (carparkList != null) {
             showAllCarparks(carparkList);
@@ -179,6 +182,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        marker.showInfoWindow();
         String carParkNo = marker.getTitle();
         BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
         ImageButton infobutton = findViewById(R.id.infobutton);
@@ -194,7 +198,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 infobutton.setVisibility(View.GONE);
                 infotext.setVisibility(View.GONE);
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
+                intent.putExtra(CAR_PARK_NO, carParkNo);
                 MapsActivity.this.startActivity(intent);
+            }
+        });
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+            @Override
+            public void onMapClick(LatLng latLng) {
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
             }
         });
         return true;
