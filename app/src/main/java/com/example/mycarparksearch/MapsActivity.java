@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -39,7 +40,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     Location currentLocation;
@@ -60,16 +61,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fab = findViewById(R.id.floatingActionButtonMapActivityOptions);
         fab.setBackgroundTintList(null);
         et = findViewById(R.id.locationEditText);
+        et.setOnClickListener(view -> {
+            et.setText("");
+            Intent intent = new Intent(this, SearchForAddressActivity.class);
+            startActivity(intent);
+        });
 
-        clbutton = findViewById(R.id.clbutton);
-        clbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fetchLastLocation();
-                showLastLocation();
-            }
+        clbutton = findViewById(R.id.clButton);
+        clbutton.setOnClickListener(view -> {
+            fetchLastLocation();
+            showLastLocation();
         });
         fetchLastLocation();
+        showLastLocation();
     }
 
     public static boolean isOnline(Context ctx) {
@@ -95,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (location != null) {
                     currentLocation = location;
                     Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
-                    +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                    +","+currentLocation.getLongitude(), Toast.LENGTH_LONG).show();
                     SupportMapFragment supportMapFragment = (SupportMapFragment)
                             getSupportFragmentManager().findFragmentById(R.id.google_map);
                     supportMapFragment.getMapAsync(MapsActivity.this);
@@ -105,11 +109,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void showLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        mMap.addMarker((markerOptions));
+        if (currentLocation != null) {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            mMap.addMarker((markerOptions));
+        }
     }
 
     private ArrayList<CarparkEntity> getAllCarparks() {
@@ -184,15 +190,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onClick(View v) {
-        if (v == et) {
-            et.setText("");
-            Intent intent = new Intent(this, SearchForAddressActivity.class);
-            startActivity(intent);
-        }
-    }
-
-    @Override
     public boolean onMarkerClick(Marker marker) {
         marker.showInfoWindow();
         String carParkNo = marker.getTitle();
@@ -225,6 +222,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         return true;
     }
+
+    //Onclick listener for the edit text, to pop up the new UI
+    /*@Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (v == et) {
+            et.setText("");
+            Intent intent = new Intent(this, SearchForAddressActivity.class);
+            startActivity(intent);
+        }
+        return false;
+    }*/
+
+    //Onclick listener for the edit text, to pop up the new UI
+    /*@Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if (v == et && hasFocus) {
+            et.setText("");
+            Intent intent = new Intent(this, SearchForAddressActivity.class);
+            startActivity(intent);
+        }
+    }*/
 
     // task that requires Internet access
     private class GetAllCarparks extends AsyncTask {

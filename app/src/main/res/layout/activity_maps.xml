@@ -30,7 +30,7 @@
             map:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/clbutton"
+            android:id="@+id/clButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="200dp"
@@ -110,7 +110,7 @@
 
         <EditText
             android:id="@+id/locationEditText"
-            android:layout_width="match_pare  nt"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/findLocationText"
             android:ems="20"
