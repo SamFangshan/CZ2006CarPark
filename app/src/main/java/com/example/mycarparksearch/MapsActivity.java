@@ -94,8 +94,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
-                    location.setLatitude(1.276307);
-                    location.setLongitude(103.840811);
                     currentLocation = location;
                     Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                     +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
@@ -136,6 +134,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
             mMap.addMarker((markerOptions));
+        }
+    }
+
+//    private void showCarPark(String carParkNo) {
+//
+//    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                String carParkNo = intent.getStringExtra(CAR_PARK_NO);
+ //               Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -199,7 +212,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 infotext.setVisibility(View.GONE);
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                 intent.putExtra(CAR_PARK_NO, carParkNo);
-                MapsActivity.this.startActivity(intent);
+                MapsActivity.this.startActivityForResult(intent, 1);
             }
         });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {

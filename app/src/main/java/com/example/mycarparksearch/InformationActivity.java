@@ -3,6 +3,8 @@ package com.example.mycarparksearch;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +37,17 @@ public class InformationActivity extends AppCompatActivity {
         if (carpark != null) {
             showFullInformation(carpark);
         }
+
+        ImageButton viewMapButton = findViewById(R.id.viewMapButton);
+        viewMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+//                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
     }
 
     private CarparkEntity getFullInformation(String carParkNo) {
