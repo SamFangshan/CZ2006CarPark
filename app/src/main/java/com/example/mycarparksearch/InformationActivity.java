@@ -1,6 +1,8 @@
 package com.example.mycarparksearch;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -36,18 +39,44 @@ public class InformationActivity extends AppCompatActivity {
         }
         if (carpark != null) {
             showFullInformation(carpark);
-        }
 
-        ImageButton viewMapButton = findViewById(R.id.viewMapButton);
-        viewMapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                Intent intent = new Intent();
-//                intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-//                setResult(RESULT_OK, intent);
-                finish();
-            }
-        });
+            ImageButton viewMapButton = findViewById(R.id.viewMapButton);
+            CarparkEntity finalCarpark = carpark;
+            viewMapButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent();
+                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+                    intent.putExtra(MapsActivity.CAR_PARK_LAT, finalCarpark.getInformation("xCoord"));
+                    intent.putExtra(MapsActivity.CAR_PARK_LON, finalCarpark.getInformation("yCoord"));
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+            });
+
+            ImageButton favoriteButton = findViewById(R.id.favoriteButton);
+            favoriteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Drawable likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
+                    Drawable likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
+                    if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
+                        favoriteButton.setImageDrawable(likeDrawable);
+                    } else {
+                        favoriteButton.setImageDrawable(likeRedDrawable);
+                        Toast.makeText(getApplicationContext(), "Favorite!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            ImageButton commentButton = findViewById(R.id.commentButton);
+            commentButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+        }
     }
 
     private CarparkEntity getFullInformation(String carParkNo) {

@@ -49,6 +49,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ImageButton clbutton;
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
+    public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
+    public static final String CAR_PARK_LON = "com.example.mycarparksearch.CAR_PARK_LON";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,9 +139,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-//    private void showCarPark(String carParkNo) {
-//
-//    }
+    private void showCarPark(double latitude, double longitude) {
+        LatLng latLng = new LatLng(latitude, longitude);
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -147,7 +151,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
                 String carParkNo = intent.getStringExtra(CAR_PARK_NO);
- //               Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
+                String lat = intent.getStringExtra(CAR_PARK_LAT);
+                String lon = intent.getStringExtra(CAR_PARK_LON);
+                Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
+                showCarPark(Double.parseDouble(lat), Double.parseDouble(lon));
             }
         }
     }
