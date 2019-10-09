@@ -54,16 +54,22 @@ public class InformationActivity extends AppCompatActivity {
                 }
             });
 
+            SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
             ImageButton favoriteButton = findViewById(R.id.favoriteButton);
+            Drawable likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
+            Drawable likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
+            if (sqLiteControl.getFavorite(carParkNo)) {
+                favoriteButton.setImageDrawable(likeRedDrawable);
+            }
             favoriteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Drawable likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
-                    Drawable likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
                     if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
+                        sqLiteControl.updateFavorite(carParkNo, false);
                         favoriteButton.setImageDrawable(likeDrawable);
                     } else {
                         favoriteButton.setImageDrawable(likeRedDrawable);
+                        sqLiteControl.updateFavorite(carParkNo, true);
                         Toast.makeText(getApplicationContext(), "Favorite!", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -78,6 +84,8 @@ public class InformationActivity extends AppCompatActivity {
                     InformationActivity.this.startActivityForResult(intent, 1);
                 }
             });
+
+            sqLiteControl.close();
         }
     }
 
