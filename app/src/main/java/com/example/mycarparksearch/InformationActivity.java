@@ -73,7 +73,9 @@ public class InformationActivity extends AppCompatActivity {
             commentButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    Intent intent = new Intent(InformationActivity.this, CommentActivity.class);
+                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+                    InformationActivity.this.startActivityForResult(intent, 1);
                 }
             });
         }
