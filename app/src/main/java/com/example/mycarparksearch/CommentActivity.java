@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
 
 public class CommentActivity extends AppCompatActivity {
 
@@ -25,6 +26,12 @@ public class CommentActivity extends AppCompatActivity {
 
         RatingBar ratingBar = findViewById(R.id.ratingBar);
         TextView commentText = findViewById(R.id.commentText);
+        SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
+        ArrayList<Object> result = sqLiteControl.getRating(carParkNo);
+        if (result != null) {
+            ratingBar.setRating((float)result.get(0));
+            commentText.setText((String)result.get(1));
+        }
 
         Button submit = findViewById(R.id.submit);
         submit.setOnClickListener(new View.OnClickListener() {
@@ -35,6 +42,8 @@ public class CommentActivity extends AppCompatActivity {
                 } else if (commentText.getText().toString().trim().length() == 0) {
                     Toast.makeText(getApplicationContext(), "Please provide comments!", Toast.LENGTH_SHORT).show();
                 } else {
+                    sqLiteControl.updateRating(carParkNo, ratingBar.getRating(), commentText.getText().toString());
+                    Toast.makeText(getApplicationContext(), "Saved successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }

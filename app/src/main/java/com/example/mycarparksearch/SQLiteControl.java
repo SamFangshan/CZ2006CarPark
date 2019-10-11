@@ -1,12 +1,12 @@
 package com.example.mycarparksearch;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import androidx.annotation.Nullable;
+import java.util.ArrayList;
+
 
 public class SQLiteControl extends SQLiteOpenHelper {
 
@@ -54,5 +54,30 @@ public class SQLiteControl extends SQLiteOpenHelper {
         }
         cursor.close();
         return false;
+    }
+
+    public void updateRating(String carParkNo, float rating, String comment) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String updateFavoriteSQL = "INSERT OR REPLACE INTO `Rating` (CarParkNo, Rating, Comment) "
+                + " VALUES (\"" + carParkNo + "\", " + rating + ", \"" + comment + "\")";
+        db.execSQL(updateFavoriteSQL);
+    }
+
+    public ArrayList<Object> getRating(String carParkNo) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String getFavoriteSQL = "SELECT Rating, Comment FROM `Rating` WHERE CarParkNo = \"" + carParkNo + "\"";
+        Cursor cursor = db.rawQuery(getFavoriteSQL, null);
+        if (cursor.moveToNext()) {
+            Float rating = cursor.getFloat(0);
+            String comment = cursor.getString(1);
+            cursor.close();
+
+            ArrayList<Object> result = new ArrayList<>();
+            result.add(rating);
+            result.add(comment);
+            return result;
+        }
+        cursor.close();
+        return null;
     }
 }

@@ -43,6 +43,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     Location currentLocation;
+    Marker currentLocationMarker;
     FusedLocationProviderClient fusedLocationProviderClient;
     EditText et;
     FloatingActionButton fab;
@@ -68,7 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 fetchLastLocation();
-                showLastLocation();
+                updateLastLocation();
             }
         });
 
@@ -107,12 +108,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    private  void updateLastLocation() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        currentLocationMarker.setPosition(latLng);
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    }
+
     private void showLastLocation() {
         LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        mMap.addMarker((markerOptions));
+        currentLocationMarker = mMap.addMarker((markerOptions));
     }
 
     private ArrayList<CarparkEntity> getAllCarparks() {
