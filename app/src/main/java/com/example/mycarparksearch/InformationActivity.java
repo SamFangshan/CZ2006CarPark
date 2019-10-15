@@ -85,6 +85,14 @@ public class InformationActivity extends AppCompatActivity {
                 }
             });
 
+            ImageButton directionsButton = findViewById(R.id.directionsButton);
+            directionsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
             sqLiteControl.close();
         }
     }
