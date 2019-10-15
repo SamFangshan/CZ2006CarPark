@@ -14,6 +14,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         super(context, "Database", null, 1);
     }
 
+    /*
+    Create relevant tables if they are not there yet
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createFavorite = "CREATE TABLE `Favorite` "
@@ -24,6 +27,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         db.execSQL(createRating);
     }
 
+    /*
+    Actions performed when there is an upgrade of database version
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         String dropFavorite = "DROP TABLE IF EXISTS `Favorite`";
@@ -33,6 +39,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    /*
+    Update the 'favorite' status of a car park
+     */
     public void updateFavorite(String carParkNo, boolean isFavorite) {
         SQLiteDatabase db = this.getWritableDatabase();
         int isFavoriteInt = isFavorite ? 1: 0;
@@ -41,6 +50,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         db.execSQL(updateFavoriteSQL);
     }
 
+    /*
+    Retrieve the 'favorite' status of a car park
+     */
     public boolean getFavorite(String carParkNo) {
         SQLiteDatabase db = this.getReadableDatabase();
         String getFavoriteSQL = "SELECT isFavorite FROM `Favorite` WHERE CarParkNo = \"" + carParkNo + "\"";
@@ -56,6 +68,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         return false;
     }
 
+    /*
+    Update the rating and comment of a car park
+     */
     public void updateRating(String carParkNo, float rating, String comment) {
         SQLiteDatabase db = this.getWritableDatabase();
         String updateFavoriteSQL = "INSERT OR REPLACE INTO `Rating` (CarParkNo, Rating, Comment) "
@@ -63,6 +78,9 @@ public class SQLiteControl extends SQLiteOpenHelper {
         db.execSQL(updateFavoriteSQL);
     }
 
+    /*
+    Retrieve the rating and comment of a car park
+     */
     public ArrayList<Object> getRating(String carParkNo) {
         SQLiteDatabase db = this.getReadableDatabase();
         String getFavoriteSQL = "SELECT Rating, Comment FROM `Rating` WHERE CarParkNo = \"" + carParkNo + "\"";

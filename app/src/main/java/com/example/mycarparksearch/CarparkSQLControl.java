@@ -14,7 +14,10 @@ public class CarparkSQLControl extends SQLControl {
         super(sshHost, sshUsername, sshPassword, dbHost, dbPort, dbName, dbUsername, dbPassword);
     }
 
-    // to be used for displaying on map
+    /*
+    To get all CarParkNo and car park coordinates for displaying car park locations on Google Maps
+    Return an ArrayList of CarparkEntity
+     */
     public ArrayList<CarparkEntity> getAllCarparkLocations() throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
@@ -38,7 +41,10 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
-    // to be used for query result list
+    /*
+    To pass in a key word (carParkNo or address) to search for car parks in the database
+    Return an ArrayList of car parks that match the keyword
+     */
     public ArrayList<CarparkEntity> queryCarparks(String keywords) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
@@ -70,7 +76,10 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
-    // to get the full detailed info of a car park
+    /*
+    To get detailed car park information of a car park with a specific carParkNo
+    Return a CarparkEntity
+     */
     public CarparkEntity queryCarparkFullInfo(String carParkNo) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {

@@ -89,6 +89,10 @@ public class InformationActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    To retrieve detailed car park information of a car park with a specific carParkNo from MySQL database
+    Return a CarparkEntity
+     */
     private CarparkEntity getFullInformation(String carParkNo) {
         CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
                 "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
@@ -102,6 +106,9 @@ public class InformationActivity extends AppCompatActivity {
         return carpark;
     }
 
+    /*
+    To display detailed car park information of a car park with a specific carParkNo on the screen
+     */
     private void showFullInformation(CarparkEntity carpark) {
         TextView carParkNoText = findViewById(R.id.carParkNo);
         carParkNoText.setText(carpark.getInformation("carParkNo"));
@@ -136,6 +143,9 @@ public class InformationActivity extends AppCompatActivity {
         showRatesAndLots(carpark);
     }
 
+    /*
+    To show the rates and lots information of a CarparkEntity
+     */
     private void showRatesAndLots(CarparkEntity carpark) {
         TextView ratesText = findViewById(R.id.rates);
         ratesText.setText(carpark.getInformation("carRates"));
@@ -165,6 +175,9 @@ public class InformationActivity extends AppCompatActivity {
         });
     }
 
+    /*
+    To switch between the rates and lots information of a CarparkEntity based on lot type
+     */
     private void switchRatesAndLots(CarparkEntity carpark, TextView ratesText, TextView lotsText, String type) {
         String rates = carpark.getInformation(type + "Rates");
         if (rates != null) {
@@ -177,7 +190,11 @@ public class InformationActivity extends AppCompatActivity {
         lotsText.setText(lots);
     }
 
-    // task that requires Internet access
+    /*
+    To retrieve detailed car park information of a car park with a specific carParkNo from MySQL database
+    Return a CarparkEntity
+    This task requires Internet access, so AsyncTask is used to create a different thread
+     */
     private class GetFullInformation extends AsyncTask<String, Void, CarparkEntity> {
         @Override
         protected CarparkEntity doInBackground(String[] carParkNos) {

@@ -22,6 +22,8 @@ public class SQLControl {
     private Connection conn;
     private Session session;
 
+    /* constructor
+     */
     public SQLControl(String sshHost, String sshUsername, String sshPassword,
                       String dbHost, int dbPort, String dbName, String dbUsername,
                       String dbPassword) {
@@ -37,6 +39,9 @@ public class SQLControl {
         this.session = null;
     }
 
+    /*
+    To set up SSH connection to the Linux server
+     */
     private void setSSHConnection() throws JSchException {
         JSch jsch = new JSch();
         session = jsch.getSession(sshUsername, sshHost, DEFAULT_SSH_PORT);
@@ -46,10 +51,16 @@ public class SQLControl {
         session.setPortForwardingL(PORT, dbHost, dbPort);
     }
 
+    /*
+    To check whether SSH connection to the Linux server is established
+     */
     private boolean isSSHConnected() {
         return session != null && session.isConnected();
     }
 
+    /*
+    To set up connection to the MySQL server
+     */
     public boolean setDBConnection() {
         if (!isSSHConnected()) {
             try {
@@ -80,10 +91,16 @@ public class SQLControl {
 
     }
 
+    /*
+    To check whether connection to the MySQL server is established
+     */
     public boolean isDBConnected() throws SQLException {
         return conn != null && conn.isValid(5);
     }
 
+    /*
+    To pass in a SQL query statement into MySQL and return a ResultSet object
+     */
     public ResultSet query(String sql) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
@@ -94,6 +111,9 @@ public class SQLControl {
         return st.executeQuery(sql);
     }
 
+    /*
+    To close connection to the Linux and the MySQL server
+     */
     public void close() {
         if (session != null) {
             session.disconnect();
