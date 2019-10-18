@@ -17,6 +17,7 @@ import android.os.Bundle;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -49,6 +50,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     EditText locationEditText;
     ImageButton menuButton;
     ImageButton clbutton;
+    static View map;
+    static int lastTouched = 0;
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
@@ -64,35 +67,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
         locationEditText = findViewById(R.id.locationEditText);
+        map = findViewById(R.id.google_map);
 
-        clbutton = findViewById(R.id.clbutton);
-        clbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fetchLastLocation();
-                updateLastLocation();
-            }
-        });
+        clbutton = findViewById(R.id.clButton);
 
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                int lastTouched = 2;
+                checkLastTouched();
             }
         });
 
-        locationEditText.setOnFocusChangeListener(new View.OnFocusChangeListener(){
-            View map = findViewById(R.id.google_map);
-            
+        locationEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int lastTouched = 1;
+                checkLastTouched();
+                return true;
+            }
+        });
+
+        map.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                int lastTouched = 3;
+                checkLastTouched();
+                return true;
+            }
         });
 
         clbutton = findViewById(R.id.clButton);
         clbutton.setOnClickListener(view -> {
             fetchLastLocation();
             showLastLocation();
+            lastTouched = 4;
+            checkLastTouched();
         });
         fetchLastLocation();
         showLastLocation();
+    }
+
+    public static void checkLastTouched() {
+        switch (lastTouched) {
+            case 1:
+                map.setVisibility(View.INVISIBLE);
+                break;
+            default:
+                map.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     /*
