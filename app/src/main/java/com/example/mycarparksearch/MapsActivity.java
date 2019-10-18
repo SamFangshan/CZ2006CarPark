@@ -5,6 +5,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -34,7 +35,6 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,13 +44,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     Location currentLocation;
+    Marker currentLocationMarker;
     FusedLocationProviderClient fusedLocationProviderClient;
-    EditText et;
-    FloatingActionButton fab;
+    EditText locationEditText;
+    ImageButton menuButton;
     ImageButton clbutton;
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
+    public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
+    public static final String CAR_PARK_LON = "com.example.mycarparksearch.CAR_PARK_LON";
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,13 +62,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Sets button colour to null
-        fab = findViewById(R.id.floatingActionButtonMapActivityOptions);
-        fab.setBackgroundTintList(null);
-        et = findViewById(R.id.locationEditText);
-        et.setOnClickListener(view -> {
-            et.setText("");
-            Intent intent = new Intent(this, SearchForAddressActivity.class);
-            startActivity(intent);
+        menuButton = findViewById(R.id.menuButton);
+        locationEditText = findViewById(R.id.locationEditText);
+
+        clbutton = findViewById(R.id.clbutton);
+        clbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fetchLastLocation();
+                updateLastLocation();
+            }
+        });
+
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        locationEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                locationEditText.setText("");
+                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                startActivity(intent);
+                return true;
+            }
         });
 
         clbutton = findViewById(R.id.clButton);
@@ -76,6 +100,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         showLastLocation();
     }
 
+    /*
+    To check whether the device has Internet connection
+     */
     public static boolean isOnline(Context ctx) {
         ConnectivityManager connMgr = (ConnectivityManager) ctx
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -86,6 +113,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
     }
 
+    /*
+    To fetch the location of this device
+     */
     private void fetchLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]
@@ -108,16 +138,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void showLastLocation() {
-        if (currentLocation != null) {
-            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-            mMap.addMarker((markerOptions));
-        }
+    /*
+    To update the location of this device
+     */
+    private  void updateLastLocation() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        currentLocationMarker.setPosition(latLng);
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
     }
 
+    /*
+    To show the location of this device on Google Maps
+     */
+    private void showLastLocation() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        currentLocationMarker = mMap.addMarker((markerOptions));
+    }
+
+    /*
+    To retrieve all CarParkNo and car park coordinates for displaying car park locations on Google Maps
+    Return an ArrayList of CarparkEntity
+     */
     private ArrayList<CarparkEntity> getAllCarparks() {
         CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
                 "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
@@ -131,6 +176,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return carparkList;
     }
 
+    /*
+    To show all car parks on Google Maps
+     */
     private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
             double lat = Double.parseDouble(e.getInformation("xCoord"));
@@ -142,9 +190,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-//    private void showCarPark(String carParkNo) {
-//
-//    }
+    /*
+    To zoom and move to the location of a specific car park
+     */
+    private void showCarPark(double latitude, double longitude) {
+        LatLng latLng = new LatLng(latitude, longitude);
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -152,7 +205,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
                 String carParkNo = intent.getStringExtra(CAR_PARK_NO);
- //               Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
+                String lat = intent.getStringExtra(CAR_PARK_LAT);
+                String lon = intent.getStringExtra(CAR_PARK_LON);
+                Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
+                showCarPark(Double.parseDouble(lat), Double.parseDouble(lon));
             }
         }
     }
@@ -189,6 +245,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    /*
+    When a car park marker on the map is clicked, the user can choose to view the detailed information
+    of a car park.
+     */
     @Override
     public boolean onMarkerClick(Marker marker) {
         marker.showInfoWindow();
@@ -223,28 +283,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return true;
     }
 
-    //Onclick listener for the edit text, to pop up the new UI
-    /*@Override
-    public boolean onTouch(View v, MotionEvent event) {
-        if (v == et) {
-            et.setText("");
-            Intent intent = new Intent(this, SearchForAddressActivity.class);
-            startActivity(intent);
-        }
-        return false;
-    }*/
-
-    //Onclick listener for the edit text, to pop up the new UI
-    /*@Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        if (v == et && hasFocus) {
-            et.setText("");
-            Intent intent = new Intent(this, SearchForAddressActivity.class);
-            startActivity(intent);
-        }
-    }*/
-
-    // task that requires Internet access
+    /*
+    To retrieve all CarParkNo and car park coordinates for displaying car park locations on Google Maps
+    Return an ArrayList of CarparkEntity
+    This task requires Internet access, so AsyncTask is used to create a different thread
+     */
     private class GetAllCarparks extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {

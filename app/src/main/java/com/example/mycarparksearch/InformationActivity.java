@@ -1,6 +1,8 @@
 package com.example.mycarparksearch;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -36,20 +39,68 @@ public class InformationActivity extends AppCompatActivity {
         }
         if (carpark != null) {
             showFullInformation(carpark);
-        }
 
-        ImageButton viewMapButton = findViewById(R.id.viewMapButton);
-        viewMapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                Intent intent = new Intent();
-//                intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-//                setResult(RESULT_OK, intent);
-                finish();
+            ImageButton viewMapButton = findViewById(R.id.viewMapButton);
+            CarparkEntity finalCarpark = carpark;
+            viewMapButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent();
+                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+                    intent.putExtra(MapsActivity.CAR_PARK_LAT, finalCarpark.getInformation("xCoord"));
+                    intent.putExtra(MapsActivity.CAR_PARK_LON, finalCarpark.getInformation("yCoord"));
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+            });
+
+            SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
+            ImageButton favoriteButton = findViewById(R.id.favoriteButton);
+            Drawable likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
+            Drawable likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
+            if (sqLiteControl.getFavorite(carParkNo)) {
+                favoriteButton.setImageDrawable(likeRedDrawable);
             }
-        });
+            favoriteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
+                        sqLiteControl.updateFavorite(carParkNo, false);
+                        favoriteButton.setImageDrawable(likeDrawable);
+                    } else {
+                        favoriteButton.setImageDrawable(likeRedDrawable);
+                        sqLiteControl.updateFavorite(carParkNo, true);
+                        Toast.makeText(getApplicationContext(), "Favorite!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            ImageButton commentButton = findViewById(R.id.commentButton);
+            commentButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(InformationActivity.this, CommentActivity.class);
+                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+                    InformationActivity.this.startActivityForResult(intent, 1);
+                }
+            });
+
+            ImageButton directionsButton = findViewById(R.id.directionsButton);
+            directionsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
+            sqLiteControl.close();
+        }
     }
 
+    /*
+    To retrieve detailed car park information of a car park with a specific carParkNo from MySQL database
+    Return a CarparkEntity
+     */
     private CarparkEntity getFullInformation(String carParkNo) {
         CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
                 "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
@@ -63,6 +114,9 @@ public class InformationActivity extends AppCompatActivity {
         return carpark;
     }
 
+    /*
+    To display detailed car park information of a car park with a specific carParkNo on the screen
+     */
     private void showFullInformation(CarparkEntity carpark) {
         TextView carParkNoText = findViewById(R.id.carParkNo);
         carParkNoText.setText(carpark.getInformation("carParkNo"));
@@ -97,6 +151,9 @@ public class InformationActivity extends AppCompatActivity {
         showRatesAndLots(carpark);
     }
 
+    /*
+    To show the rates and lots information of a CarparkEntity
+     */
     private void showRatesAndLots(CarparkEntity carpark) {
         TextView ratesText = findViewById(R.id.rates);
         ratesText.setText(carpark.getInformation("carRates"));
@@ -126,6 +183,9 @@ public class InformationActivity extends AppCompatActivity {
         });
     }
 
+    /*
+    To switch between the rates and lots information of a CarparkEntity based on lot type
+     */
     private void switchRatesAndLots(CarparkEntity carpark, TextView ratesText, TextView lotsText, String type) {
         String rates = carpark.getInformation(type + "Rates");
         if (rates != null) {
@@ -138,7 +198,11 @@ public class InformationActivity extends AppCompatActivity {
         lotsText.setText(lots);
     }
 
-    // task that requires Internet access
+    /*
+    To retrieve detailed car park information of a car park with a specific carParkNo from MySQL database
+    Return a CarparkEntity
+    This task requires Internet access, so AsyncTask is used to create a different thread
+     */
     private class GetFullInformation extends AsyncTask<String, Void, CarparkEntity> {
         @Override
         protected CarparkEntity doInBackground(String[] carParkNos) {
