@@ -81,14 +81,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        locationEditText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                locationEditText.setText("");
-                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
-                startActivity(intent);
-                return true;
-            }
+        locationEditText.setOnFocusChangeListener(new View.OnFocusChangeListener(){
+            View map = findViewById(R.id.google_map);
+            
         });
 
         clbutton = findViewById(R.id.clButton);
