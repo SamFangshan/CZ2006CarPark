@@ -2,8 +2,8 @@ package com.example.mycarparksearch;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -12,8 +12,8 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -25,33 +25,36 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
+import android.os.Looper;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.*;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomappbar.BottomAppBar;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
+    SupportMapFragment mapFrag;
     Location currentLocation;
+    LocationRequest locationRQ;
     Marker currentLocationMarker;
     FusedLocationProviderClient fusedLocationProviderClient;
     EditText locationEditText;
     ImageButton menuButton;
     ImageButton clbutton;
-    static View map;
-    static int lastTouched = 0;
+    boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
+
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
@@ -67,56 +70,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
         locationEditText = findViewById(R.id.locationEditText);
-        map = findViewById(R.id.google_map);
 
         clbutton = findViewById(R.id.clButton);
+        clbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fetchLastLocation();
+                updateLastLocation();
+            }
+        });
 
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int lastTouched = 2;
-                checkLastTouched();
+
             }
         });
 
         locationEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int lastTouched = 1;
-                checkLastTouched();
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
                 return true;
             }
         });
 
-        map.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                int lastTouched = 3;
-                checkLastTouched();
-                return true;
-            }
-        });
-
-        clbutton = findViewById(R.id.clButton);
-        clbutton.setOnClickListener(view -> {
-            fetchLastLocation();
-            showLastLocation();
-            lastTouched = 4;
-            checkLastTouched();
-        });
-        fetchLastLocation();
-        showLastLocation();
+        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        mapFrag.getMapAsync(this);
     }
 
-    public static void checkLastTouched() {
-        switch (lastTouched) {
-            case 1:
-                map.setVisibility(View.INVISIBLE);
-                break;
-            default:
-                map.setVisibility(View.VISIBLE);
-                break;
+    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
+    LocationCallback locationCB = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Log.i("Callback","Callback triggered!");
+            List<Location> locationList = locationResult.getLocations();
+            if (locationList.size() > 0) {
+                //The last location in the list is the newest
+                Location location = locationList.get(locationList.size() - 1);
+                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                currentLocation = location;
+
+                if (currentLocationMarker != null) currentLocationMarker.remove();
+
+                //Place current location marker
+                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+                currentLocationMarker = mMap.addMarker((markerOptions));
+                currentLocationMarker.setPosition(latLng);
+                if (!firstTime) {
+                    firstTime = true;
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                }
+            }
         }
-    }
+    };
 
     /*
     To check whether the device has Internet connection
@@ -135,46 +144,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     To fetch the location of this device
      */
     private void fetchLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                    {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            return;
-        }
-        Task<Location> task = fusedLocationProviderClient.getLastLocation();
-        task.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    currentLocation = location;
-                    Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
-                    +","+currentLocation.getLongitude(), Toast.LENGTH_LONG).show();
-                    SupportMapFragment supportMapFragment = (SupportMapFragment)
-                            getSupportFragmentManager().findFragmentById(R.id.google_map);
-                    supportMapFragment.getMapAsync(MapsActivity.this);
-                }
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]
+                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                return;
             }
-        });
+            Task<Location> task = fusedLocationProviderClient.getLastLocation();
+
+            task.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        currentLocation = location;
+                        Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
+                                +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                        SupportMapFragment supportMapFragment = (SupportMapFragment)
+                                getSupportFragmentManager().findFragmentById(R.id.google_map);
+
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.i("fetchLastLocation","Error in fetchLastLocation");
+        }
     }
 
     /*
     To update the location of this device
      */
-    private  void updateLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        currentLocationMarker.setPosition(latLng);
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    private void updateLastLocation() {
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            currentLocationMarker.setPosition(latLng);
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        } catch (Exception e) {
+            Log.i("updateLastLocation", "Error in updateLastLocation");
+        }
     }
 
     /*
     To show the location of this device on Google Maps
      */
     private void showLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        currentLocationMarker = mMap.addMarker((markerOptions));
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            currentLocationMarker = mMap.addMarker((markerOptions));
+        } catch (Exception e) {
+            Log.i("showLastLocation", "Error in showLastLocation");
+        }
     }
 
     /*
@@ -233,9 +255,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.i("Test", "Map is ready");
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.setOnMarkerClickListener(this);
-        showLastLocation();
+
+        locationRQ = new LocationRequest();
+        locationRQ.setInterval(10000);
+        locationRQ.setFastestInterval(3000);
+        locationRQ.setSmallestDisplacement((float)10.0);
+        locationRQ.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -250,6 +279,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (carparkList != null) {
             showAllCarparks(carparkList);
         }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                ActivityCompat.requestPermissions(this, new String[]
+                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                fetchLastLocation();
+                showLastLocation();
+            }
+            else {
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                mMap.setMyLocationEnabled(true);
+            }
+        }
+
     }
 
     @Override
