@@ -312,6 +312,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
+                ImageButton infobutton = findViewById(R.id.infobutton);
+                TextView infotext = findViewById(R.id.infotext);
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
                 if (destinationMarker == null) {
                     MarkerOptions options = new MarkerOptions();
                     options.position(latLng);
@@ -533,14 +539,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                 intent.putExtra(CAR_PARK_NO, carParkNo);
                 MapsActivity.this.startActivityForResult(intent, 1);
-            }
-        });
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                bottomAppBar.setVisibility(View.GONE);
-                infobutton.setVisibility(View.GONE);
-                infotext.setVisibility(View.GONE);
             }
         });
         return true;
