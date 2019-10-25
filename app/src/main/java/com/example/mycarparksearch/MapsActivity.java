@@ -2,18 +2,19 @@ package com.example.mycarparksearch;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -24,31 +25,48 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
+import android.os.Looper;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.*;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomappbar.BottomAppBar;
-
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
+    SupportMapFragment mapFrag;
     Location currentLocation;
+    LocationRequest locationRQ;
     Marker currentLocationMarker;
     FusedLocationProviderClient fusedLocationProviderClient;
     EditText locationEditText;
     ImageButton menuButton;
     ImageButton clbutton;
+    Marker destinationMarker;
+    private Polyline mPolyline;
+    boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
+
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
@@ -65,7 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         menuButton = findViewById(R.id.menuButton);
         locationEditText = findViewById(R.id.locationEditText);
 
-        clbutton = findViewById(R.id.clbutton);
+        clbutton = findViewById(R.id.clButton);
         clbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -84,15 +102,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                locationEditText.setText("");
-                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
-                startActivity(intent);
+
                 return true;
             }
         });
 
-        fetchLastLocation();
+        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        mapFrag.getMapAsync(this);
     }
+
+    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
+    LocationCallback locationCB = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Log.i("Callback","Callback triggered!");
+            List<Location> locationList = locationResult.getLocations();
+            if (locationList.size() > 0) {
+                //The last location in the list is the newest
+                Location location = locationList.get(locationList.size() - 1);
+                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                currentLocation = location;
+
+                if (currentLocationMarker != null) currentLocationMarker.remove();
+
+                //Place current location marker
+                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+                currentLocationMarker = mMap.addMarker((markerOptions));
+                currentLocationMarker.setPosition(latLng);
+                if (!firstTime) {
+                    firstTime = true;
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                }
+            }
+        }
+    };
 
     /*
     To check whether the device has Internet connection
@@ -111,46 +156,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     To fetch the location of this device
      */
     private void fetchLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                    {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            return;
-        }
-        Task<Location> task = fusedLocationProviderClient.getLastLocation();
-        task.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    currentLocation = location;
-                    Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
-                    +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
-                    SupportMapFragment supportMapFragment = (SupportMapFragment)
-                            getSupportFragmentManager().findFragmentById(R.id.google_map);
-                    supportMapFragment.getMapAsync(MapsActivity.this);
-                }
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]
+                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                return;
             }
-        });
+            Task<Location> task = fusedLocationProviderClient.getLastLocation();
+
+            task.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        currentLocation = location;
+                        Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
+                                +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                        SupportMapFragment supportMapFragment = (SupportMapFragment)
+                                getSupportFragmentManager().findFragmentById(R.id.google_map);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.i("fetchLastLocation","Error in fetchLastLocation");
+        }
     }
 
     /*
     To update the location of this device
      */
-    private  void updateLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        currentLocationMarker.setPosition(latLng);
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    private void updateLastLocation() {
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            currentLocationMarker.setPosition(latLng);
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        } catch (Exception e) {
+            Log.i("updateLastLocation", "Error in updateLastLocation");
+        }
     }
 
     /*
     To show the location of this device on Google Maps
      */
     private void showLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        currentLocationMarker = mMap.addMarker((markerOptions));
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            currentLocationMarker = mMap.addMarker((markerOptions));
+        } catch (Exception e) {
+            Log.i("showLastLocation", "Error in showLastLocation");
+        }
     }
 
     /*
@@ -209,9 +266,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.i("Test", "Map is ready");
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.setOnMarkerClickListener(this);
-        showLastLocation();
+
+        locationRQ = new LocationRequest();
+        locationRQ.setInterval(10000);
+        locationRQ.setFastestInterval(3000);
+        locationRQ.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -225,6 +288,219 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         if (carparkList != null) {
             showAllCarparks(carparkList);
+        }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                ActivityCompat.requestPermissions(this, new String[]
+                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                fetchLastLocation();
+                updateLastLocation();
+                showLastLocation();
+            }
+            else {
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                //mMap.setMyLocationEnabled(true);
+                fetchLastLocation();
+                updateLastLocation();
+                showLastLocation();
+            }
+        }
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
+                ImageButton infobutton = findViewById(R.id.infobutton);
+                TextView infotext = findViewById(R.id.infotext);
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
+                if (destinationMarker == null) {
+                    MarkerOptions options = new MarkerOptions();
+                    options.position(latLng);
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    destinationMarker = mMap.addMarker(options);
+                }
+                else {
+                    destinationMarker.setPosition(latLng);
+                }
+                // Getting URL to the Google Directions API
+                drawRoute(latLng);
+            }
+        });
+    }
+
+    private void drawRoute(LatLng latLng){
+
+        // Getting URL to the Google Directions API
+        String url = getDirectionsUrl(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latLng);
+
+        DownloadTask downloadTask = new DownloadTask();
+
+        // Start downloading json data from Google Directions API
+        downloadTask.execute(url);
+    }
+
+    private String getDirectionsUrl(LatLng origin,LatLng dest){
+
+        // Origin of route
+        String str_origin = "origin="+origin.latitude+","+origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination="+dest.latitude+","+dest.longitude;
+
+        // Key
+        String key = "key=" + getString(R.string.google_maps_key);
+
+        // Building the parameters to the web service
+        String parameters = str_origin+"&"+str_dest+"&"+key;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/"+output+"?"+parameters;
+
+        return url;
+    }
+
+    /** A method to download json data from url */
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try{
+            URL url = new URL(strUrl);
+
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            // Connecting to url
+            urlConnection.connect();
+
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+
+            StringBuffer sb  = new StringBuffer();
+
+            String line = "";
+            while( ( line = br.readLine())  != null){
+                sb.append(line);
+            }
+
+            data = sb.toString();
+
+            br.close();
+
+        }catch(Exception e){
+            Log.d("Exception on download", e.toString());
+        }finally{
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
+    }
+
+    /** A class to download data from Google Directions URL */
+    private class DownloadTask extends AsyncTask<String, Void, String> {
+
+        // Downloading data in non-ui thread
+        @Override
+        protected String doInBackground(String... url) {
+
+            // For storing data from web service
+            String data = "";
+
+            try{
+                // Fetching the data from web service
+                data = downloadUrl(url[0]);
+                Log.d("DownloadTask","DownloadTask : " + data);
+            }catch(Exception e){
+                Log.d("Background Task",e.toString());
+            }
+            return data;
+        }
+
+        // Executes in UI thread, after the execution of
+        // doInBackground()
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            ParserTask parserTask = new ParserTask();
+
+            // Invokes the thread for parsing the JSON data
+            parserTask.execute(result);
+        }
+    }
+
+    /** A class to parse the Google Directions in JSON format */
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>> >{
+
+        // Parsing the data in non-ui thread
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+
+            try{
+                jObject = new JSONObject(jsonData[0]);
+                DirectionsJSONParser parser = new DirectionsJSONParser();
+
+                // Starts parsing data
+                routes = parser.parse(jObject);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        // Executes in UI thread, after the parsing process
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+            ArrayList<LatLng> points = null;
+            PolylineOptions lineOptions = null;
+
+            // Traversing through all the routes
+            for(int i=0;i<result.size();i++){
+                points = new ArrayList<LatLng>();
+                lineOptions = new PolylineOptions();
+
+                // Fetching i-th route
+                List<HashMap<String, String>> path = result.get(i);
+
+                // Fetching all the points in i-th route
+                for(int j=0;j<path.size();j++){
+                    HashMap<String,String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(points);
+                lineOptions.width(8);
+                lineOptions.color(Color.RED);
+            }
+
+            // Drawing polyline in the Google Map for the i-th route
+            if(lineOptions != null) {
+                if(mPolyline != null){
+                    mPolyline.remove();
+                }
+                mPolyline = mMap.addPolyline(lineOptions);
+
+            }else
+                Toast.makeText(getApplicationContext(),"No route is found", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -265,15 +541,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 MapsActivity.this.startActivityForResult(intent, 1);
             }
         });
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
-            @Override
-            public void onMapClick(LatLng latLng) {
-                bottomAppBar.setVisibility(View.GONE);
-                infobutton.setVisibility(View.GONE);
-                infotext.setVisibility(View.GONE);
-            }
-        });
         return true;
     }
 
@@ -289,20 +556,3 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -30,7 +30,7 @@
             map:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/clbutton"
+            android:id="@+id/clButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="200dp"
