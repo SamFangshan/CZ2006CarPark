@@ -116,7 +116,10 @@ public class SQLControl {
      */
     public void close() {
         if (session != null) {
-            session.disconnect();
+            try {
+                session.disconnect();
+                session.delPortForwardingL(PORT);
+            } catch (JSchException e) {}
         }
         if (conn != null) {
             try {
