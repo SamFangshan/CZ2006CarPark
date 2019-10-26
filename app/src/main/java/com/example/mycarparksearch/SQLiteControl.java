@@ -4,11 +4,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.strictmode.SqliteObjectLeakedViolation;
 
 import java.util.ArrayList;
 
+import static com.example.mycarparksearch.MapsActivity.CAR_PARK_NO;
+
 
 public class SQLiteControl extends SQLiteOpenHelper {
+
 
     public SQLiteControl(Context context) {
         super(context, "Database", null, 1);
@@ -17,6 +21,7 @@ public class SQLiteControl extends SQLiteOpenHelper {
     /*
     Create relevant tables if they are not there yet
      */
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createFavorite = "CREATE TABLE `Favorite` "
@@ -30,6 +35,7 @@ public class SQLiteControl extends SQLiteOpenHelper {
     /*
     Actions performed when there is an upgrade of database version
      */
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         String dropFavorite = "DROP TABLE IF EXISTS `Favorite`";
@@ -44,7 +50,7 @@ public class SQLiteControl extends SQLiteOpenHelper {
      */
     public void updateFavorite(String carParkNo, boolean isFavorite) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int isFavoriteInt = isFavorite ? 1: 0;
+        int isFavoriteInt = isFavorite ? 1 : 0;
         String updateFavoriteSQL = "INSERT OR REPLACE INTO `Favorite` (CarParkNo, isFavorite) "
                 + " VALUES (\"" + carParkNo + "\", " + isFavoriteInt + ")";
         db.execSQL(updateFavoriteSQL);
@@ -66,6 +72,13 @@ public class SQLiteControl extends SQLiteOpenHelper {
         }
         cursor.close();
         return false;
+    }
+//    Remove favorite status of a car park
+    public void deleteFavorite(String carParkNo){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String deleteFavorite = "DELETE FROM Favorite WHERE CarParkNo =\"" +carParkNo +"\"" ;
+        db.execSQL(deleteFavorite);
+
     }
 
     /*
@@ -98,4 +111,13 @@ public class SQLiteControl extends SQLiteOpenHelper {
         cursor.close();
         return null;
     }
+
+
+    public Cursor viewData() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query ="SELECT carParkNo FROM `Favorite` ";
+        Cursor cursor = db.rawQuery(query, null);
+        return cursor;
+    }
 }
+

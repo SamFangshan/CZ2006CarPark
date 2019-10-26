@@ -50,7 +50,8 @@
             android:visibility="gone"
             map:layout_constraintBottom_toBottomOf="@+id/google_map"
             map:layout_constraintEnd_toEndOf="parent"
-            map:layout_constraintStart_toStartOf="parent" />
+            map:layout_constraintStart_toStartOf="parent"
+            tools:ignore="BottomAppBar" />
 
         <ImageButton
             android:id="@+id/infobutton"
@@ -100,7 +101,16 @@
                 android:ems="20"
                 android:inputType="textPostalAddress"
                 android:text="@string/findLocationText" />
+
         </LinearLayout>
+
+        <ListView
+            android:id="@+id/favorite_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/cardview_light_background"
+            tools:layout_editor_absoluteX="12dp"
+            tools:layout_editor_absoluteY="165dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
