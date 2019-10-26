@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CommentActivity"></activity>
+        <activity android:name=".SaveCarparkActivity"></activity>
+        <activity android:name=".CommentActivity" />
         <activity android:name=".SearchForAddressActivity" />
         <activity android:name=".InformationActivity" />
 
