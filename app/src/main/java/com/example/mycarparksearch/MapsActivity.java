@@ -115,7 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         switch (item.getItemId()) {
                             case R.id.save_favorites:
                             favoritelist.setVisibility(View.VISIBLE);
-                            viewData();
+                            viewFavorite();
                             return true;
                             default:
                                 return false;
@@ -144,11 +144,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onResume() {
 
         super.onResume();
-        viewData();
+        viewFavorite();
 
         adapter.notifyDataSetChanged();
     }
-    private void viewData() {
+    private void viewFavorite() {
 
         Cursor cursor = db.viewData();
 
