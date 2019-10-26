@@ -67,13 +67,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="150dp"
-        android:text="Notify"
+        android:text="Notify by"
         android:textColor="#000000"
         android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.489"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Days" />
+        app:layout_constraintTop_toBottomOf="@+id/daysChips" />
 
     <EditText
         android:id="@+id/nameText"
@@ -91,40 +91,42 @@
         app:layout_constraintStart_toEndOf="@+id/name"
         app:layout_constraintTop_toBottomOf="@+id/carParkNo" />
 
-    <EditText
+    <TextView
         android:id="@+id/timeText"
         android:layout_width="156dp"
         android:layout_height="39dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="30dp"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
         android:background="@drawable/textview_border"
         android:ems="10"
-        android:inputType="time"
+        android:paddingLeft="5dp"
+        android:paddingTop="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="#000000"
+        android:textSize="20sp"
         app:layout_constraintStart_toEndOf="@+id/time"
         app:layout_constraintTop_toBottomOf="@+id/nameText" />
 
-    <EditText
+    <TextView
         android:id="@+id/time2"
         android:layout_width="156dp"
         android:layout_height="39dp"
         android:layout_marginStart="25dp"
         android:layout_marginTop="35dp"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
         android:background="@drawable/textview_border"
         android:ems="10"
-        android:inputType="time"
+        android:paddingLeft="5dp"
+        android:paddingTop="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="#000000"
+        android:textSize="20sp"
         app:layout_constraintStart_toEndOf="@+id/notify"
-        app:layout_constraintTop_toBottomOf="@+id/Days" />
+        app:layout_constraintTop_toBottomOf="@+id/daysChips" />
 
     <com.google.android.material.chip.ChipGroup
-        android:id="@+id/Days"
+        android:id="@+id/daysChips"
         android:layout_width="199dp"
         android:layout_height="152dp"
         android:layout_marginStart="24dp"
