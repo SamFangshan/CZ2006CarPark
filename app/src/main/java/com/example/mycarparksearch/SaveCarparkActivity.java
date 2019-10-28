@@ -3,15 +3,13 @@ package com.example.mycarparksearch;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -20,22 +18,20 @@ import android.widget.Toast;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.StringTokenizer;
 
 public class SaveCarparkActivity extends AppCompatActivity {
+    public static final String DAYS = "com.example.mycarparksearch.DAYS";
+    public static final String NAME = "com.example.mycarparksearch.NAME";
     private static final int TIME = 0;
     private static final int MINUTE = 1;
     private TimePickerDialog.OnTimeSetListener time_listener;
     private TimePickerDialog.OnTimeSetListener minute_listener;
-    private static final int MON = 0;
-    private static final int TUE = 1;
-    private static final int WED = 2;
-    private static final int THU = 3;
-    private static final int FRI = 4;
-    private static final int SAT = 5;
-    private static final int SUN = 6;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -139,13 +135,48 @@ public class SaveCarparkActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Please select at least one day!", Toast.LENGTH_SHORT).show();
                 } else if (notifyText.getText().toString().length() == 0) {
                     Toast.makeText(getApplicationContext(), "Please enter by how much time you want to notified!", Toast.LENGTH_SHORT).show();
+                } else if (!notifyText.getText().toString().substring(0,2).equals("00")) {
+                    Toast.makeText(getApplicationContext(), "The time set should not be more than one hour before!", Toast.LENGTH_SHORT).show();
                 } else {
                     sqLiteControl.updateSavedCarpark(carParkNo, nameText.getText().toString(),
+                            timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
+                    setNotification(carParkNo, nameText.getText().toString(),
                             timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
                     finish();
                 }
             }
         });
+    }
+
+    private void setNotification(String carParkNo, String name, String time, String daysClicked, String notifyBy) {
+        Calendar calendar = Calendar.getInstance();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        Date timeDate;
+        Date notifyByDate;
+        try {
+            timeDate = formatter.parse(time);
+            notifyByDate = formatter.parse(notifyBy);
+        } catch (ParseException e) {
+            Toast.makeText(getApplicationContext(), "Operation failed!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        long diff = timeDate.getTime() - notifyByDate.getTime();
+        long diffHours = diff / (60 * 60 * 1000) % 24;
+        long diffDays = diff / (24 * 60 * 60 * 1000);
+
+        Calendar calender = Calendar.getInstance();
+        calender.set(Calendar.HOUR_OF_DAY, (int)diffHours);
+        calendar.set(Calendar.MINUTE, (int)diffDays);
+
+        Intent intent = new Intent(getApplicationContext(), NotificationReceiver.class);
+        intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        intent.putExtra(SaveCarparkActivity.NAME, name);
+        intent.putExtra(SaveCarparkActivity.DAYS, daysClicked);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 100, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
     protected Dialog createDialog(int id) {
