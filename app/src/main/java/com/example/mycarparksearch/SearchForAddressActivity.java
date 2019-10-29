@@ -12,4 +12,3 @@ public class SearchForAddressActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search_for_address);
     }
 }
-
