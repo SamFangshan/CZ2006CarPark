@@ -66,6 +66,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker destinationMarker;
     private Polyline mPolyline;
     boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
+    SQLiteControl db;
+    ArrayList<String>listItem;
+    ArrayAdapter adapter;
+    ListView favoritelist;
 
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
@@ -78,6 +82,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        db = new SQLiteControl(this);
+        listItem = new ArrayList<>();
+
+        favoritelist = (ListView) findViewById(R.id.favorite_list);
+        favoritelist.setVisibility(View.GONE);
+
+        View headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
+        favoritelist.addHeaderView(headerView);
 
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
@@ -96,48 +108,118 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
 
+                PopupMenu popup = new PopupMenu(MapsActivity.this, view);
+
+
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.save_favorites:
+                            favoritelist.setVisibility(View.VISIBLE);
+                            viewFavorite();
+                            return true;
+                            default:
+                                return false;
+
+                        }
+                    }
+                });
+                popup.show();
             }
         });
 
         locationEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-
+                locationEditText.setText("");
+                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                startActivity(intent);
                 return true;
             }
         });
 
-        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-        mapFrag.getMapAsync(this);
+        fetchLastLocation();
+
+    }
+    @Override
+    public void onResume() {
+
+        super.onResume();
+        viewFavorite();
+
+        adapter.notifyDataSetChanged();
+    }
+    private void viewFavorite() {
+
+        Cursor cursor = db.viewData();
+
+
+        listItem.clear();
+        if(cursor.getCount() == 0){
+            Toast.makeText(this, "No data to show", Toast.LENGTH_SHORT).show();
+        }else{
+            while (cursor.moveToNext()){
+
+                String carParkNo = cursor.getString(0);
+                listItem.add(carParkNo);
+
+            }
+
+            adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,listItem);
+            favoritelist.setAdapter(adapter);
+
+            favoritelist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String carParkNo = (String) parent.getAdapter().getItem(position);
+                    Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
+                    intent.putExtra(CAR_PARK_NO, carParkNo);
+                    startActivity(intent);
+
+
+
+
+                }
+            });
+        }
+
+    }
+    @Override
+    public void onBackPressed() {
+        if(favoritelist.getVisibility()==View.VISIBLE){
+
+            favoritelist.setVisibility(View.INVISIBLE);
+            return;
+        }
+        super.onBackPressed();
+
+        adapter.notifyDataSetChanged();
     }
 
-    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
-    LocationCallback locationCB = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            Log.i("Callback","Callback triggered!");
-            List<Location> locationList = locationResult.getLocations();
-            if (locationList.size() > 0) {
-                //The last location in the list is the newest
-                Location location = locationList.get(locationList.size() - 1);
-                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
-                currentLocation = location;
-
-                if (currentLocationMarker != null) currentLocationMarker.remove();
-
-                //Place current location marker
-                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-                currentLocationMarker = mMap.addMarker((markerOptions));
-                currentLocationMarker.setPosition(latLng);
-                if (!firstTime) {
-                    firstTime = true;
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-                }
-            }
+    /*
+    To show all car parks on Google Maps
+     */
+    private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
+        for (CarparkEntity e : carparkList) {
+            double lat = Double.parseDouble(e.getInformation("xCoord"));
+            double lon = Double.parseDouble(e.getInformation("yCoord"));
+            String cpn = e.getInformation("carParkNo");
+            LatLng latLng = new LatLng(lat, lon);
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
+            mMap.addMarker((markerOptions));
         }
-    };
+    }
+
+    /*
+    To zoom and move to the location of a specific car park
+     */
+ }
+
+
+
+
 
     /*
     To check whether the device has Internet connection
@@ -156,58 +238,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     To fetch the location of this device
      */
     private void fetchLastLocation() {
-        try {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]
-                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-                return;
-            }
-            Task<Location> task = fusedLocationProviderClient.getLastLocation();
-
-            task.addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        currentLocation = location;
-                        Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
-                                +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
-                        SupportMapFragment supportMapFragment = (SupportMapFragment)
-                                getSupportFragmentManager().findFragmentById(R.id.google_map);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            Log.i("fetchLastLocation","Error in fetchLastLocation");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]
+                    {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+            return;
         }
+        Task<Location> task = fusedLocationProviderClient.getLastLocation();
+        task.addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    location.setLatitude(1.276307);
+                    location.setLongitude(103.840811);
+                    currentLocation = location;
+                    Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
+                            +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                    SupportMapFragment supportMapFragment = (SupportMapFragment)
+                            getSupportFragmentManager().findFragmentById(R.id.google_map);
+                    supportMapFragment.getMapAsync(MapsActivity.this);
+                }
+            }
+        });
     }
 
     /*
     To update the location of this device
      */
-    private void updateLastLocation() {
-        try {
-            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            currentLocationMarker.setPosition(latLng);
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        } catch (Exception e) {
-            Log.i("updateLastLocation", "Error in updateLastLocation");
-        }
+    private  void updateLastLocation() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        currentLocationMarker.setPosition(latLng);
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
     }
 
     /*
     To show the location of this device on Google Maps
      */
     private void showLastLocation() {
-        try {
-            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-            currentLocationMarker = mMap.addMarker((markerOptions));
-        } catch (Exception e) {
-            Log.i("showLastLocation", "Error in showLastLocation");
-        }
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        currentLocationMarker = mMap.addMarker((markerOptions));
     }
 
     /*
@@ -275,6 +347,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRQ.setInterval(10000);
         locationRQ.setFastestInterval(3000);
         locationRQ.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mMap.setOnMarkerClickListener(this);
+        showLastLocation();
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -504,6 +578,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -539,6 +615,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                 intent.putExtra(CAR_PARK_NO, carParkNo);
                 MapsActivity.this.startActivityForResult(intent, 1);
+            }
+        });
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+            @Override
+            public void onMapClick(LatLng latLng) {
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
             }
         });
         return true;

@@ -6,9 +6,11 @@ import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -65,7 +67,7 @@ public class InformationActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
-                        sqLiteControl.updateFavorite(carParkNo, false);
+                        sqLiteControl.deleteFavorite(carParkNo);
                         favoriteButton.setImageDrawable(likeDrawable);
                     } else {
                         favoriteButton.setImageDrawable(likeRedDrawable);
