@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -27,10 +28,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.location.*;
@@ -107,12 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 PopupMenu popup = new PopupMenu(MapsActivity.this, view);
-
-
                 popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
-
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
@@ -122,7 +124,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             return true;
                             default:
                                 return false;
-
                         }
                     }
                 });
@@ -177,10 +178,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
                     startActivity(intent);
-
-
-
-
                 }
             });
         }
@@ -211,15 +208,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.addMarker((markerOptions));
         }
     }
-
-    /*
-    To zoom and move to the location of a specific car park
-     */
- }
-
-
-
-
 
     /*
     To check whether the device has Internet connection
@@ -299,19 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return carparkList;
     }
 
-    /*
-    To show all car parks on Google Maps
-     */
-    private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
-        for (CarparkEntity e : carparkList) {
-            double lat = Double.parseDouble(e.getInformation("xCoord"));
-            double lon = Double.parseDouble(e.getInformation("yCoord"));
-            String cpn = e.getInformation("carParkNo");
-            LatLng latLng = new LatLng(lat, lon);
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
-            mMap.addMarker((markerOptions));
-        }
-    }
+
 
     /*
     To zoom and move to the location of a specific car park
@@ -514,7 +490,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /** A class to parse the Google Directions in JSON format */
-    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>> >{
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>> > {
 
         // Parsing the data in non-ui thread
         @Override
@@ -523,13 +499,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             JSONObject jObject;
             List<List<HashMap<String, String>>> routes = null;
 
-            try{
+            try {
                 jObject = new JSONObject(jsonData[0]);
                 DirectionsJSONParser parser = new DirectionsJSONParser();
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return routes;
@@ -542,7 +518,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             PolylineOptions lineOptions = null;
 
             // Traversing through all the routes
-            for(int i=0;i<result.size();i++){
+            for (int i = 0; i < result.size(); i++) {
                 points = new ArrayList<LatLng>();
                 lineOptions = new PolylineOptions();
 
@@ -550,8 +526,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 List<HashMap<String, String>> path = result.get(i);
 
                 // Fetching all the points in i-th route
-                for(int j=0;j<path.size();j++){
-                    HashMap<String,String> point = path.get(j);
+                for (int j = 0; j < path.size(); j++) {
+                    HashMap<String, String> point = path.get(j);
 
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
@@ -567,17 +543,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             // Drawing polyline in the Google Map for the i-th route
-            if(lineOptions != null) {
-                if(mPolyline != null){
+            if (lineOptions != null) {
+                if (mPolyline != null) {
                     mPolyline.remove();
                 }
                 mPolyline = mMap.addPolyline(lineOptions);
 
-            }else
-                Toast.makeText(getApplicationContext(),"No route is found", Toast.LENGTH_LONG).show();
+            } else
+                Toast.makeText(getApplicationContext(), "No route is found", Toast.LENGTH_LONG).show();
         }
-    }
-
     }
 
     @Override
