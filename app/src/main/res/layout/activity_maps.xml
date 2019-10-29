@@ -1,9 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Refer to documentation here for constraint layout -->
+<!--https://developer.android.com/training/constraint-layout/index.html&ndash;&gt;-->
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity" />
+    tools:context=".MapsActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--
+        second line (xmlns:map="http://schemas.android.com/apk/res-auto") is kept until we build. It may be
+        used in the future or not, but we'll keep it there just in case.-->
+
+        <fragment
+            android:id="@+id/google_map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintHorizontal_bias="0.0"
+            map:layout_constraintStart_toStartOf="parent"
+            map:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/clButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="200dp"
+            android:background="@drawable/button_background"
+            android:src="@drawable/clbutton"
+            android:visibility="visible"
+            map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:id="@+id/bottomAppBar"
+            style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+            android:layout_width="405dp"
+            android:layout_height="125dp"
+            android:layout_gravity="bottom"
+            android:backgroundTint="@color/common_google_signin_btn_text_dark_default"
+            android:visibility="gone"
+            map:layout_constraintBottom_toBottomOf="@+id/google_map"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="parent"
+            tools:ignore="BottomAppBar" />
+
+        <ImageButton
+            android:id="@+id/infobutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/info"
+            android:visibility="gone"
+            map:layout_constraintBottom_toBottomOf="@+id/bottomAppBar"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="@+id/bottomAppBar"
+            map:layout_constraintTop_toTopOf="@+id/bottomAppBar" />
+
+        <TextView
+            android:id="@+id/infotext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detailed Info"
+            android:textColor="#000"
+            android:visibility="gone"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="parent"
+            map:layout_constraintTop_toBottomOf="@+id/infobutton" />
+
+        <LinearLayout
+            android:layout_width="369dp"
+            android:layout_height="61dp"
+            android:orientation="horizontal"
+            android:background="#FFFFFF"
+            map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="parent"
+            map:layout_constraintTop_toTopOf="@+id/google_map">
+
+            <ImageButton
+                android:id="@+id/menuButton"
+                android:layout_width="76dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_background"
+                android:src="@drawable/main_menu_options_button" />
+
+            <EditText
+                android:id="@+id/locationEditText"
+                android:layout_width="274dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="30dp"
+                android:ems="20"
+                android:inputType="textPostalAddress"
+                android:text="@string/findLocationText" />
+
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/favorite_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/cardview_light_background"
+            tools:layout_editor_absoluteX="12dp"
+            tools:layout_editor_absoluteY="165dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</RelativeLayout>
