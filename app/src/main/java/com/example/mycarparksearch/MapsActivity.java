@@ -76,6 +76,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String>listItem;
     ArrayAdapter adapter;
     ListView favoritelist;
+    private boolean shouldExecuteOnresume = false;
+    private int countOnResume = 0;
 
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
@@ -134,24 +136,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                locationEditText.setText("");
-                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
-                startActivity(intent);
+
                 return true;
             }
         });
 
-        fetchLastLocation();
-
+        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        mapFrag.getMapAsync(this);
     }
+
+    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
+    LocationCallback locationCB = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Log.i("Callback","Callback triggered!");
+            List<Location> locationList = locationResult.getLocations();
+            if (locationList.size() > 0) {
+                //The last location in the list is the newest
+                Location location = locationList.get(locationList.size() - 1);
+                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                currentLocation = location;
+
+                if (currentLocationMarker != null) currentLocationMarker.remove();
+
+                //Place current location marker
+                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+                currentLocationMarker = mMap.addMarker((markerOptions));
+                currentLocationMarker.setPosition(latLng);
+                if (!firstTime) {
+                    firstTime = true;
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                }
+            }
+        }
+    };
+
+
     @Override
     public void onResume() {
-
         super.onResume();
-        viewFavorite();
-
-        adapter.notifyDataSetChanged();
+        if (shouldExecuteOnresume) {
+            viewFavorite();
+            adapter.notifyDataSetChanged();
+        } else {
+            if (countOnResume >= 1) {
+                shouldExecuteOnresume = true;
+            } else {
+                countOnResume++;
+            }
+        }
     }
+
     private void viewFavorite() {
 
         Cursor cursor = db.viewData();
@@ -226,48 +263,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     To fetch the location of this device
      */
     private void fetchLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                    {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            return;
-        }
-        Task<Location> task = fusedLocationProviderClient.getLastLocation();
-        task.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    location.setLatitude(1.276307);
-                    location.setLongitude(103.840811);
-                    currentLocation = location;
-                    Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
-                            +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
-                    SupportMapFragment supportMapFragment = (SupportMapFragment)
-                            getSupportFragmentManager().findFragmentById(R.id.google_map);
-                    supportMapFragment.getMapAsync(MapsActivity.this);
-                }
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]
+                        {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                return;
             }
-        });
+            Task<Location> task = fusedLocationProviderClient.getLastLocation();
+
+            task.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        currentLocation = location;
+                        Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
+                                +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+                        SupportMapFragment supportMapFragment = (SupportMapFragment)
+                                getSupportFragmentManager().findFragmentById(R.id.google_map);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.i("fetchLastLocation","Error in fetchLastLocation");
+        }
     }
 
     /*
     To update the location of this device
      */
-    private  void updateLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        currentLocationMarker.setPosition(latLng);
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    private void updateLastLocation() {
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            currentLocationMarker.setPosition(latLng);
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        } catch (Exception e) {
+            Log.i("updateLastLocation", "Error in updateLastLocation");
+        }
     }
 
     /*
     To show the location of this device on Google Maps
      */
     private void showLastLocation() {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        currentLocationMarker = mMap.addMarker((markerOptions));
+        try {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            currentLocationMarker = mMap.addMarker((markerOptions));
+        } catch (Exception e) {
+            Log.i("showLastLocation", "Error in showLastLocation");
+        }
     }
 
     /*
@@ -286,8 +333,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return carparkList;
     }
-
-
 
     /*
     To zoom and move to the location of a specific car park
@@ -323,8 +368,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRQ.setInterval(10000);
         locationRQ.setFastestInterval(3000);
         locationRQ.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        mMap.setOnMarkerClickListener(this);
-        showLastLocation();
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -591,15 +634,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 MapsActivity.this.startActivityForResult(intent, 1);
             }
         });
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
-            @Override
-            public void onMapClick(LatLng latLng) {
-                bottomAppBar.setVisibility(View.GONE);
-                infobutton.setVisibility(View.GONE);
-                infotext.setVisibility(View.GONE);
-            }
-        });
         return true;
     }
 
@@ -614,4 +648,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return getAllCarparks();
         }
     }
+
 }
