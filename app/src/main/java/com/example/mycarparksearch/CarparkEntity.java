@@ -38,4 +38,23 @@ public class CarparkEntity {
         return Arrays.asList(record).toString() + "\n"
                 + Arrays.asList(lotsAvailable).toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o.getClass() != this.getClass()) {
+            return false;
+        }
+        if (((CarparkEntity)o).lotsAvailable == null && this.lotsAvailable == null &&
+                this.record.equals(((CarparkEntity)o).record)) {
+            return true;
+        }
+        if (((CarparkEntity)o).lotsAvailable == null || this.lotsAvailable == null) {
+            return false;
+        }
+        if (this.lotsAvailable.equals(((CarparkEntity)o).lotsAvailable) &&
+                this.record.equals(((CarparkEntity)o).record)) {
+            return true;
+        }
+        return false;
+    }
 }
