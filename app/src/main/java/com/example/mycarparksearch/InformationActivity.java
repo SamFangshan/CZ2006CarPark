@@ -91,7 +91,9 @@ public class InformationActivity extends AppCompatActivity {
             directionsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    Intent intent = new Intent(InformationActivity.this, SaveCarparkActivity.class);
+                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+                    InformationActivity.this.startActivityForResult(intent, 1);
                 }
             });
 
