@@ -214,7 +214,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String carParkNo = (String) parent.getAdapter().getItem(position);
                     Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
-                    startActivity(intent);
+                    startActivityForResult(intent, 1);
                 }
             });
         }
@@ -348,6 +348,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onActivityResult(requestCode, resultCode, intent);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
+                if(favoritelist.getVisibility()==View.VISIBLE){
+                    favoritelist.setVisibility(View.INVISIBLE);
+                }
                 String carParkNo = intent.getStringExtra(CAR_PARK_NO);
                 String lat = intent.getStringExtra(CAR_PARK_LAT);
                 String lon = intent.getStringExtra(CAR_PARK_LON);
