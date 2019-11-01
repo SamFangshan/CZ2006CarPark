@@ -486,6 +486,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     destinationMarker = mMap.addMarker(options);
                 }
                 else {
+                    MarkerOptions options = new MarkerOptions();
+                    options.position(latLng);
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    destinationMarker.remove();
+                    destinationMarker = mMap.addMarker(options);
                     destinationMarker.setPosition(latLng);
                 }
                 // Getting URL to the Google Directions API
@@ -691,16 +696,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
         infotext.setVisibility(View.VISIBLE);
+        if (destinationMarker != null)
+            destinationMarker.remove();
         drawRoute(marker.getPosition());
         infobutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bottomAppBar.setVisibility(View.GONE);
-                infobutton.setVisibility(View.GONE);
-                infotext.setVisibility(View.GONE);
+                //bottomAppBar.setVisibility(View.GONE);
+                //infobutton.setVisibility(View.GONE);
+                //infotext.setVisibility(View.GONE);
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                 intent.putExtra(CAR_PARK_NO, carParkNo);
                 MapsActivity.this.startActivityForResult(intent, 1);
+                /*if (mPolyline != null) {
+                    mPolyline.remove();
+                }*/
             }
         });
         return true;

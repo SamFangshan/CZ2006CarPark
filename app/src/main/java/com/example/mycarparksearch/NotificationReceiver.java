@@ -9,9 +9,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
-
 import androidx.core.app.NotificationCompat;
-
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.StringTokenizer;
