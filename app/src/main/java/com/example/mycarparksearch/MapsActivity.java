@@ -691,6 +691,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
         infotext.setVisibility(View.VISIBLE);
+        drawRoute(marker.getPosition());
         infobutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
