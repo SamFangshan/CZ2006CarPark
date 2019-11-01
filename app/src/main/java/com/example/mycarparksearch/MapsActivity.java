@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.example.mycarparksearch.R.id.save_carpark;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
@@ -76,19 +78,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String>listItem;
     ArrayAdapter adapter;
     ListView favoritelist;
+    ListView savedCarparkList;
     private boolean shouldExecuteOnresume = false;
     private int countOnResume = 0;
+    private boolean resumeWithFav = false;
+    private boolean resumeWithSav = false;
+    private Context context;
 
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
     public static final String CAR_PARK_LON = "com.example.mycarparksearch.CAR_PARK_LON";
 
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        context = getApplicationContext();
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         db = new SQLiteControl(this);
         listItem = new ArrayList<>();
@@ -96,8 +106,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         favoritelist = (ListView) findViewById(R.id.favorite_list);
         favoritelist.setVisibility(View.GONE);
 
+        savedCarparkList = (ListView) findViewById(R.id.savedCarpark_List);
+        savedCarparkList.setVisibility(View.GONE);
+
         View headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
         favoritelist.addHeaderView(headerView);
+
+        View carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
+        savedCarparkList.addHeaderView(carparkheaderView);
+
+
 
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
@@ -121,9 +139,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.save_favorites:
-                            favoritelist.setVisibility(View.VISIBLE);
-                            viewFavorite();
-                            return true;
+                                favoritelist.setVisibility(View.VISIBLE);
+                                viewFavorite();
+                                return true;
+                            case save_carpark:
+                                savedCarparkList.setVisibility(View.VISIBLE);
+                                viewSavedCarpark();
                             default:
                                 return false;
                         }
@@ -177,16 +198,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onResume() {
         super.onResume();
-        if (shouldExecuteOnresume) {
+        if (resumeWithFav) {
             viewFavorite();
-            adapter.notifyDataSetChanged();
-        } else {
-            if (countOnResume >= 1) {
-                shouldExecuteOnresume = true;
-            } else {
-                countOnResume++;
-            }
+            resumeWithFav = false;
         }
+        if (resumeWithSav) {
+            viewSavedCarpark();
+            resumeWithSav = false;
+        }
+        try {
+            adapter.notifyDataSetChanged();
+        } catch (Exception e) { }
     }
 
     private void viewFavorite() {
@@ -214,7 +236,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String carParkNo = (String) parent.getAdapter().getItem(position);
                     Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
-                    startActivity(intent);
+                    resumeWithFav = true;
+                    startActivityForResult(intent, 1);
                 }
             });
         }
@@ -227,9 +250,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             favoritelist.setVisibility(View.INVISIBLE);
             return;
         }
+        else if (savedCarparkList.getVisibility()==View.VISIBLE){
+
+            savedCarparkList.setVisibility(View.INVISIBLE);
+            return;
+
+        }
         super.onBackPressed();
 
         adapter.notifyDataSetChanged();
+    }
+
+    public void viewSavedCarpark(){
+        Cursor cursor = db.viewSavedCarpark();
+
+        listItem.clear();
+        if(cursor.getCount() == 0){
+            Toast.makeText(this, "No data to show", Toast.LENGTH_SHORT).show();
+        }else{
+            ArrayList<String> carParkNos = new ArrayList<String>();
+            while (cursor.moveToNext()){
+
+                String name = cursor.getString(0);
+                carParkNos.add(cursor.getString(1));
+                listItem.add(name);
+
+            }
+
+            adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,listItem);
+            savedCarparkList.setAdapter(adapter);
+
+            savedCarparkList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String carParkNo = carParkNos.get(position - 1);
+                    Intent intent = new Intent(MapsActivity.this, SaveCarparkActivity.class);
+                    intent.putExtra(CAR_PARK_NO, carParkNo);
+                    resumeWithSav = true;
+                    startActivity(intent);
+                }
+            });
+        }
+
     }
 
     /*
@@ -237,9 +299,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
-            double lat = Double.parseDouble(e.getInformation("xCoord"));
-            double lon = Double.parseDouble(e.getInformation("yCoord"));
-            String cpn = e.getInformation("carParkNo");
+            double lat = Double.parseDouble(e.getInformation(context.getString(R.string.xCoord)));
+            double lon = Double.parseDouble(e.getInformation(context.getString(R.string.yCoord)));
+            String cpn = e.getInformation(context.getString(R.string.carParkNo));
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
             mMap.addMarker((markerOptions));
@@ -322,8 +384,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Return an ArrayList of CarparkEntity
      */
     private ArrayList<CarparkEntity> getAllCarparks() {
-        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
         ArrayList<CarparkEntity> carparkList = null;
         try {
             carparkList = con.getAllCarparkLocations();
@@ -348,6 +413,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onActivityResult(requestCode, resultCode, intent);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
+                if(favoritelist.getVisibility()==View.VISIBLE){
+                    favoritelist.setVisibility(View.INVISIBLE);
+                }
                 String carParkNo = intent.getStringExtra(CAR_PARK_NO);
                 String lat = intent.getStringExtra(CAR_PARK_LAT);
                 String lon = intent.getStringExtra(CAR_PARK_LON);

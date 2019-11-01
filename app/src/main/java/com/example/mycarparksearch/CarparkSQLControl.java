@@ -1,5 +1,7 @@
 package com.example.mycarparksearch;
 
+import android.content.Context;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -8,10 +10,12 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 public class CarparkSQLControl extends SQLControl {
+    private Context context;
     public CarparkSQLControl(String sshHost, String sshUsername, String sshPassword,
                              String dbHost, int dbPort, String dbName, String dbUsername,
-                             String dbPassword) {
+                             String dbPassword, Context context) {
         super(sshHost, sshUsername, sshPassword, dbHost, dbPort, dbName, dbUsername, dbPassword);
+        this.context = context;
     }
 
     /*
@@ -29,9 +33,9 @@ public class CarparkSQLControl extends SQLControl {
         ArrayList<CarparkEntity> carparkList = new ArrayList<CarparkEntity>();
         while(result.next()) {
             HashMap<String, String> carMap = new HashMap<String, String>();
-            carMap.put("carParkNo", result.getString("carParkNo"));
-            carMap.put("xCoord", result.getString("xCoord"));
-            carMap.put("yCoord", result.getString("yCoord"));
+            carMap.put(context.getString(R.string.carParkNo), result.getString(context.getString(R.string.carParkNo)));
+            carMap.put(context.getString(R.string.xCoord), result.getString(context.getString(R.string.xCoord)));
+            carMap.put(context.getString(R.string.yCoord), result.getString(context.getString(R.string.yCoord)));
             CarparkEntity carparkEntity = new CarparkEntity(carMap);
             carparkList.add(carparkEntity);
         }
@@ -51,7 +55,6 @@ public class CarparkSQLControl extends SQLControl {
                 throw new SQLException("Connection to database failed!");
             }
         }
-
         String matcher = "%";
         StringTokenizer st = new StringTokenizer(keywords);
         while (st.hasMoreTokens()) {
@@ -65,8 +68,8 @@ public class CarparkSQLControl extends SQLControl {
         ArrayList<CarparkEntity> carparkList = new ArrayList<CarparkEntity>();
         while(result.next()) {
             HashMap<String, String> carMap = new HashMap<String, String>();
-            carMap.put("carParkNo", result.getString("carParkNo"));
-            carMap.put("address", result.getString("address"));
+            carMap.put(context.getString(R.string.carParkNo), result.getString(context.getString(R.string.carParkNo)));
+            carMap.put(context.getString(R.string.address), result.getString(context.getString(R.string.address)));
             CarparkEntity carparkEntity = new CarparkEntity(carMap);
             carparkList.add(carparkEntity);
         }
@@ -106,9 +109,9 @@ public class CarparkSQLControl extends SQLControl {
         resultMD = result.getMetaData();
         result.next();
         HashMap<String, Integer> lotMap = new HashMap<String, Integer>();
-        lotMap.put("carLotAvail", result.getInt("carLotAvail"));
-        lotMap.put("motorLotAvail", result.getInt("motorLotAvail"));
-        lotMap.put("heavyLotAvail", result.getInt("heavyLotAvail"));
+        lotMap.put(context.getString(R.string.carLotAvail), result.getInt(context.getString(R.string.carLotAvail)));
+        lotMap.put(context.getString(R.string.motorLotAvail), result.getInt(context.getString(R.string.motorLotAvail)));
+        lotMap.put(context.getString(R.string.heavyLotAvail), result.getInt(context.getString(R.string.heavyLotAvail)));
         result.close();
 
         CarparkEntity carparkEntity = new CarparkEntity(carMap, lotMap);

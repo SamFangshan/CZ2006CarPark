@@ -1,16 +1,14 @@
 package com.example.mycarparksearch;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -25,11 +23,14 @@ public class InformationActivity extends AppCompatActivity {
     private static final int MOTOR = 1;
     private static final int HEAVY = 2;
     private static final String NA = "N.A.";
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_information);
+
+        context = getApplicationContext();
 
         Intent intent = getIntent();
         String carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
@@ -49,8 +50,8 @@ public class InformationActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     Intent intent = new Intent();
                     intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-                    intent.putExtra(MapsActivity.CAR_PARK_LAT, finalCarpark.getInformation("xCoord"));
-                    intent.putExtra(MapsActivity.CAR_PARK_LON, finalCarpark.getInformation("yCoord"));
+                    intent.putExtra(MapsActivity.CAR_PARK_LAT, finalCarpark.getInformation(context.getString(R.string.xCoord)));
+                    intent.putExtra(MapsActivity.CAR_PARK_LON, finalCarpark.getInformation(context.getString(R.string.yCoord)));
                     setResult(RESULT_OK, intent);
                     finish();
                 }
@@ -106,8 +107,11 @@ public class InformationActivity extends AppCompatActivity {
     Return a CarparkEntity
      */
     private CarparkEntity getFullInformation(String carParkNo) {
-        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
         CarparkEntity carpark;
         try {
             carpark = con.queryCarparkFullInfo(carParkNo);
@@ -123,34 +127,34 @@ public class InformationActivity extends AppCompatActivity {
      */
     private void showFullInformation(CarparkEntity carpark) {
         TextView carParkNoText = findViewById(R.id.carParkNo);
-        carParkNoText.setText(carpark.getInformation("carParkNo"));
+        carParkNoText.setText(carpark.getInformation(context.getString(R.string.carParkNo)));
 
         TextView addressText = findViewById(R.id.address);
-        addressText.setText(carpark.getInformation("address"));
+        addressText.setText(carpark.getInformation(context.getString(R.string.address)));
 
         TextView carParkTypeText = findViewById(R.id.carParkType);
-        carParkTypeText.append(carpark.getInformation("carParkType"));
+        carParkTypeText.append(carpark.getInformation(context.getString(R.string.carParkType)));
 
         TextView typeOfParkingSystemText = findViewById(R.id.typeOfParkingSystem);
-        typeOfParkingSystemText.append(carpark.getInformation("typeOfParkingSystem"));
+        typeOfParkingSystemText.append(carpark.getInformation(context.getString(R.string.typeOfParkingSystem)));
 
         TextView shortTermParkingText = findViewById(R.id.shortTermParking);
-        shortTermParkingText.append(carpark.getInformation("shortTermParking"));
+        shortTermParkingText.append(carpark.getInformation(context.getString(R.string.shortTermParking)));
 
         TextView freeParking = findViewById(R.id.freeParking);
-        freeParking.append(carpark.getInformation("freeParking"));
+        freeParking.append(carpark.getInformation(context.getString(R.string.freeParking)));
 
         TextView nightParking = findViewById(R.id.nightParking);
-        nightParking.append(carpark.getInformation("nightParking"));
+        nightParking.append(carpark.getInformation(context.getString(R.string.nightParking)));
 
         TextView carParkDecksText = findViewById(R.id.carParkDecks);
-        carParkDecksText.append(carpark.getInformation("carParkDecks"));
+        carParkDecksText.append(carpark.getInformation(context.getString(R.string.carParkDecks)));
 
         TextView gantryHeightText = findViewById(R.id.gantryHeight);
-        gantryHeightText.append(carpark.getInformation("gantryHeight"));
+        gantryHeightText.append(carpark.getInformation(context.getString(R.string.gantryHeight)));
 
         TextView carParkBasementText = findViewById(R.id.carParkBasement);
-        carParkBasementText.append(carpark.getInformation("carParkBasement"));
+        carParkBasementText.append(carpark.getInformation(context.getString(R.string.carParkBasement)));
 
         showRatesAndLots(carpark);
     }
@@ -160,11 +164,11 @@ public class InformationActivity extends AppCompatActivity {
      */
     private void showRatesAndLots(CarparkEntity carpark) {
         TextView ratesText = findViewById(R.id.rates);
-        ratesText.setText(carpark.getInformation("carRates"));
+        ratesText.setText(carpark.getInformation(context.getString(R.string.carRates)));
 
         TextView lotsText = findViewById(R.id.lots);
-        String lots = "Available lots: " + carpark.getLotsAvailable("carLotAvail")
-                + "/" + carpark.getInformation("carLotNum");
+        String lots = "Available lots: " + carpark.getLotsAvailable(context.getString(R.string.carLotAvail))
+                + "/" + carpark.getInformation(context.getString(R.string.carLotNum));
         lotsText.setText(lots);
 
         TabLayout ratesSwitch = findViewById(R.id.ratesSwitch);
@@ -173,11 +177,11 @@ public class InformationActivity extends AppCompatActivity {
             public void onTabSelected(TabLayout.Tab tab) {
                 int pos = tab.getPosition();
                 if (pos == CAR) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "car");
+                    switchRatesAndLots(carpark, ratesText, lotsText, context.getString(R.string.car));
                 } else if (pos == MOTOR) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "motor");
+                    switchRatesAndLots(carpark, ratesText, lotsText, context.getString(R.string.motor));
                 } else if (pos == HEAVY) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "heavy");
+                    switchRatesAndLots(carpark, ratesText, lotsText, context.getString(R.string.heavy));
                 }
             }
             @Override
@@ -191,14 +195,14 @@ public class InformationActivity extends AppCompatActivity {
     To switch between the rates and lots information of a CarparkEntity based on lot type
      */
     private void switchRatesAndLots(CarparkEntity carpark, TextView ratesText, TextView lotsText, String type) {
-        String rates = carpark.getInformation(type + "Rates");
+        String rates = carpark.getInformation(type + context.getString(R.string.rateSuffix));
         if (rates != null) {
             ratesText.setText(rates);
         } else {
             ratesText.setText(NA);
         }
-        String lots = "Available lots: " + carpark.getLotsAvailable(type + "LotAvail")
-                + "/" + carpark.getInformation(type + "LotNum");
+        String lots = "Available lots: " + carpark.getLotsAvailable(type + context.getString(R.string.lotAvailSuffix))
+                + "/" + carpark.getInformation(type + context.getString(R.string.lotNumSuffix));
         lotsText.setText(lots);
     }
 

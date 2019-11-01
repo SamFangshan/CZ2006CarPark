@@ -17,14 +17,18 @@ import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 
+import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
+
 public class NotificationReceiver extends BroadcastReceiver {
     private String carParkNo;
+    private Context context;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
         String name = intent.getStringExtra(SaveCarparkActivity.NAME);
         String days = intent.getStringExtra(SaveCarparkActivity.DAYS);
+        context = getApplicationContext();
 
         boolean isDayToSend = checkIsDayToSend(days);
         if (!isDayToSend) {
@@ -68,14 +72,17 @@ public class NotificationReceiver extends BroadcastReceiver {
 
     private String getContentText() {
         String result = "";
-        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
         int car = 0, motor = 0, heavy = 0;
         try {
             CarparkEntity carparkEntity = con.queryCarparkFullInfo(carParkNo);
-            car = carparkEntity.getLotsAvailable("carLotAvail");
-            motor = carparkEntity.getLotsAvailable("motorLotAvail");
-            heavy = carparkEntity.getLotsAvailable("heavyLotAvail");
+            car = carparkEntity.getLotsAvailable(context.getString(R.string.carLotAvail));
+            motor = carparkEntity.getLotsAvailable(context.getString(R.string.motorLotAvail));
+            heavy = carparkEntity.getLotsAvailable(context.getString(R.string.heavyLotAvail));
         } catch (SQLException e) { result += e.getMessage() + "\n";}
         result += "Car Lots: " + car + "\nMotor Lots: " + motor + "\nHeavy Lots: " + heavy;
         return result;

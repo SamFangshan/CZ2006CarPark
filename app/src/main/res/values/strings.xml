@@ -3,5 +3,40 @@
     <string name="title_activity_maps">Map</string>
     <string name="map_key" translatable="false">AIzaSyCN2zyVMvCtbLE_7kGt4VbJFd2O8EQVCEo</string>
     <string name="findLocationText">Find a location</string>
+    <string name="carParkNo">carParkNo</string>
+    <string name="address">address</string>
+    <string name="xCoord">xCoord</string>
+    <string name="yCoord">yCoord</string>
+    <string name="carParkType">carParkType</string>
+    <string name="typeOfParkingSystem">typeOfParkingSystem</string>
+    <string name="shortTermParking">shortTermParking</string>
+    <string name="freeParking">freeParking</string>
+    <string name="nightParking">nightParking</string>
+    <string name="carParkDecks">carParkDecks</string>
+    <string name="gantryHeight">gantryHeight</string>
+    <string name="carParkBasement">carParkBasement</string>
+    <string name="carLotNum">carLotNum</string>
+    <string name="motorLotNum">motorLotNum</string>
+    <string name="heavyLotNum">heavyLotNum</string>
+    <string name="carRates">carRates</string>
+    <string name="motorRates">motorRates</string>
+    <string name="heavyRates">heavyRates</string>
+    <string name="carLotAvail">carLotAvail</string>
+    <string name="motorLotAvail">motorLotAvail</string>
+    <string name="heavyLotAvail">heavyLotAvail</string>
+    <string name="car">car</string>
+    <string name="motor">motor</string>
+    <string name="heavy">heavy</string>
+    <string name="rateSuffix">Rates</string>
+    <string name="lotNumSuffix">LotNum</string>
+    <string name="lotAvailSuffix">LotAvail</string>
+    <string name="sshHost">172.21.148.165</string>
+    <string name="sshUsername">VMadmin</string>
+    <string name="sshPassword">cz2006ala</string>
+    <string name="dbHost">localhost</string>
+    <string name="dbPort">3306</string>
+    <string name="dbName">cz2006</string>
+    <string name="dbUsername">cz2006</string>
+    <string name="dbPassword">cz2006ala</string>
     <!--If there are issues with a key, replace the key here and also in google_maps_api.xml-->
 </resources>
