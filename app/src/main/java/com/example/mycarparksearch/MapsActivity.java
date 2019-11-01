@@ -83,6 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int countOnResume = 0;
     private boolean resumeWithFav = false;
     private boolean resumeWithSav = false;
+    private Context context;
 
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
@@ -95,6 +96,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        context = getApplicationContext();
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         db = new SQLiteControl(this);
         listItem = new ArrayList<>();
@@ -135,12 +139,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.save_favorites:
-                            favoritelist.setVisibility(View.VISIBLE);
-                            viewFavorite();
-                            return true;
+                                favoritelist.setVisibility(View.VISIBLE);
+                                viewFavorite();
+                                return true;
                             case save_carpark:
                                 savedCarparkList.setVisibility(View.VISIBLE);
-                            viewSavedCarpark();
+                                viewSavedCarpark();
                             default:
                                 return false;
                         }
@@ -194,23 +198,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onResume() {
         super.onResume();
-        if (shouldExecuteOnresume) {
-            if (resumeWithFav) {
-                viewFavorite();
-                resumeWithFav = false;
-            }
-            if (resumeWithSav) {
-                viewSavedCarpark();
-                resumeWithSav = false;
-            }
-            adapter.notifyDataSetChanged();
-        } else {
-            if (countOnResume >= 1) {
-                shouldExecuteOnresume = true;
-            } else {
-                countOnResume++;
-            }
+        if (resumeWithFav) {
+            viewFavorite();
+            resumeWithFav = false;
         }
+        if (resumeWithSav) {
+            viewSavedCarpark();
+            resumeWithSav = false;
+        }
+        try {
+            adapter.notifyDataSetChanged();
+        } catch (Exception e) { }
     }
 
     private void viewFavorite() {
@@ -301,9 +299,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
-            double lat = Double.parseDouble(e.getInformation("xCoord"));
-            double lon = Double.parseDouble(e.getInformation("yCoord"));
-            String cpn = e.getInformation("carParkNo");
+            double lat = Double.parseDouble(e.getInformation(context.getString(R.string.xCoord)));
+            double lon = Double.parseDouble(e.getInformation(context.getString(R.string.yCoord)));
+            String cpn = e.getInformation(context.getString(R.string.carParkNo));
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
             mMap.addMarker((markerOptions));
@@ -386,8 +384,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Return an ArrayList of CarparkEntity
      */
     private ArrayList<CarparkEntity> getAllCarparks() {
-        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
         ArrayList<CarparkEntity> carparkList = null;
         try {
             carparkList = con.getAllCarparkLocations();
