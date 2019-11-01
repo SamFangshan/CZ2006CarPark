@@ -155,7 +155,7 @@ public class SQLiteControl extends SQLiteOpenHelper {
 
     public Cursor viewSavedCarpark(){
         SQLiteDatabase db = this.getReadableDatabase();
-        String query ="SELECT Name FROM 'SavedCarpark'";
+        String query ="SELECT Name, CarParkNo FROM 'SavedCarpark'";
         Cursor cursor =db.rawQuery(query,null);
         return cursor;
     }

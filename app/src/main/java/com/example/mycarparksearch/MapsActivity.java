@@ -259,9 +259,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(cursor.getCount() == 0){
             Toast.makeText(this, "No data to show", Toast.LENGTH_SHORT).show();
         }else{
+            ArrayList<String> carParkNos = new ArrayList<String>();
             while (cursor.moveToNext()){
 
                 String name = cursor.getString(0);
+                carParkNos.add(cursor.getString(1));
                 listItem.add(name);
 
             }
@@ -272,9 +274,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             savedCarparkList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    String name = (String) parent.getAdapter().getItem(position);
+                    String carParkNo = carParkNos.get(position);
                     Intent intent = new Intent(MapsActivity.this, SaveCarparkActivity.class);
-                    intent.putExtra(CAR_PARK_NO,name);
+                    intent.putExtra(CAR_PARK_NO, carParkNo);
                     startActivity(intent);
                 }
             });
