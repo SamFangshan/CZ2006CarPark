@@ -66,7 +66,7 @@ public class SQLControl {
             try {
                 setSSHConnection();
             } catch (JSchException e) {
-                Log.d("CREATION", e.toString());
+                Log.d("CREATION", "SSH connection failed");
                 close();
                 return false;
             }
@@ -77,14 +77,13 @@ public class SQLControl {
             try {
                 conn = DriverManager.getConnection(url+dbName, dbUsername, dbPassword);
             } catch (SQLException e) {
-                //Log.d("CREATION", e.getStackTrace().toString());
-                Log.d("CREATION", "H");
+                Log.d("CREATION", "Connection to database failed");
                 close();
                 return false;
             }
             return true;
         } catch (ClassNotFoundException e) {
-            Log.d("CREATION", "class");
+            Log.d("CREATION", "No jdbc.Driver class found");
             close();
             return false;
         }
