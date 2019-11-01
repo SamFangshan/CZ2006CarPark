@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.example.mycarparksearch.R.id.save_carpark;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
@@ -76,6 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String>listItem;
     ArrayAdapter adapter;
     ListView favoritelist;
+    ListView savedCarparkList;
     private boolean shouldExecuteOnresume = false;
     private int countOnResume = 0;
 
@@ -96,8 +99,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         favoritelist = (ListView) findViewById(R.id.favorite_list);
         favoritelist.setVisibility(View.GONE);
 
+        savedCarparkList = (ListView) findViewById(R.id.savedCarpark_List);
+        savedCarparkList.setVisibility(View.GONE);
+
         View headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
         favoritelist.addHeaderView(headerView);
+
+        View carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
+        savedCarparkList.addHeaderView(carparkheaderView);
+
+
 
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
@@ -124,6 +135,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             favoritelist.setVisibility(View.VISIBLE);
                             viewFavorite();
                             return true;
+                            case save_carpark:
+                                savedCarparkList.setVisibility(View.VISIBLE);
+                            viewSavedCarpark();
                             default:
                                 return false;
                         }
@@ -227,9 +241,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             favoritelist.setVisibility(View.INVISIBLE);
             return;
         }
+        else if (savedCarparkList.getVisibility()==View.VISIBLE){
+
+            savedCarparkList.setVisibility(View.INVISIBLE);
+            return;
+
+        }
         super.onBackPressed();
 
         adapter.notifyDataSetChanged();
+    }
+
+    public void viewSavedCarpark(){
+        Cursor cursor = db.viewSavedCarpark();
+
+        listItem.clear();
+        if(cursor.getCount() == 0){
+            Toast.makeText(this, "No data to show", Toast.LENGTH_SHORT).show();
+        }else{
+            while (cursor.moveToNext()){
+
+                String name = cursor.getString(0);
+                listItem.add(name);
+
+            }
+
+            adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,listItem);
+            savedCarparkList.setAdapter(adapter);
+
+            savedCarparkList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String name = (String) parent.getAdapter().getItem(position);
+                    Intent intent = new Intent(MapsActivity.this, SaveCarparkActivity.class);
+                    intent.putExtra(CAR_PARK_NO,name);
+                    startActivity(intent);
+                }
+            });
+        }
+
     }
 
     /*
