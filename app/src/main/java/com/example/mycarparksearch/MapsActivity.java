@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.mycarparksearch.R.id.save_carpark;
+import static com.example.mycarparksearch.R.id.search_carpark;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -173,6 +174,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             case save_carpark:
                                 savedCarparkList.setVisibility(View.VISIBLE);
                             viewSavedCarpark();
+                            return true;
+                            case search_carpark:
+                                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                                startActivity(intent);
+                            return true;
                             default:
                                 return false;
                         }
