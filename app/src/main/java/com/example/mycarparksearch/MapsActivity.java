@@ -81,11 +81,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ListView savedCarparkList;
     private boolean shouldExecuteOnresume = false;
     private int countOnResume = 0;
+    private boolean resumeWithFav = false;
+    private boolean resumeWithSav = false;
 
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
     public static final String CAR_PARK_LON = "com.example.mycarparksearch.CAR_PARK_LON";
+
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -192,8 +195,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onResume() {
         super.onResume();
         if (shouldExecuteOnresume) {
-            viewFavorite();
-            viewSavedCarpark();
+            if (resumeWithFav) {
+                viewFavorite();
+                resumeWithFav = false;
+            }
+            if (resumeWithSav) {
+                viewSavedCarpark();
+                resumeWithSav = false;
+            }
             adapter.notifyDataSetChanged();
         } else {
             if (countOnResume >= 1) {
@@ -229,6 +238,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String carParkNo = (String) parent.getAdapter().getItem(position);
                     Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
+                    resumeWithFav = true;
                     startActivityForResult(intent, 1);
                 }
             });
@@ -278,6 +288,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String carParkNo = carParkNos.get(position - 1);
                     Intent intent = new Intent(MapsActivity.this, SaveCarparkActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
+                    resumeWithSav = true;
                     startActivity(intent);
                 }
             });
