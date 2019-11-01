@@ -137,8 +137,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 final LatLng latLng = place.getLatLng();
 
                 Log.i("Place", "onPlaceSelected:"+latLng.latitude+"\n"+latLng.longitude);
-            }
 
+                if (destinationMarker == null) {
+                    MarkerOptions options = new MarkerOptions();
+                    options.position(latLng);
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    destinationMarker = mMap.addMarker(options);
+                }
+                else {
+                    destinationMarker.setPosition(latLng);
+                }
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            }
             @Override
             public void onError(@NonNull Status status) {
 
