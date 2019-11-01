@@ -193,6 +193,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onResume();
         if (shouldExecuteOnresume) {
             viewFavorite();
+            viewSavedCarpark();
             adapter.notifyDataSetChanged();
         } else {
             if (countOnResume >= 1) {
@@ -274,7 +275,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             savedCarparkList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    String carParkNo = carParkNos.get(position);
+                    String carParkNo = carParkNos.get(position - 1);
                     Intent intent = new Intent(MapsActivity.this, SaveCarparkActivity.class);
                     intent.putExtra(CAR_PARK_NO, carParkNo);
                     startActivity(intent);
