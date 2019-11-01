@@ -2,6 +2,6 @@
     <string name="app_name">MyCarparkSearch</string>
     <string name="title_activity_maps">Map</string>
     <string name="map_key" translatable="false">AIzaSyCN2zyVMvCtbLE_7kGt4VbJFd2O8EQVCEo</string>
-    <string name="findLocationText">Find a location</string>
+    <string name="findLocationText">         Find a location</string>
     <!--If there are issues with a key, replace the key here and also in google_maps_api.xml-->
 </resources>
