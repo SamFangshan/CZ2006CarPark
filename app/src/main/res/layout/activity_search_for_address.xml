@@ -39,15 +39,69 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/filters"
+        android:layout_width="325dp"
+        android:layout_height="361dp"
+        android:layout_marginTop="80dp"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/quantum_bluegrey100"
+            android:text="@string/typeofparking"
+            android:textColor="@color/quantum_black_100" />
+
+        <Button
+            android:id="@+id/system"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/quantum_bluegrey100"
+            android:text="@string/parkingsystem"
+            android:textColor="@color/quantum_black_100" />
+
+        <Button
+            android:id="@+id/short_term"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/quantum_bluegrey100"
+            android:text="@string/shorttermparking"
+            android:textColor="@color/quantum_black_100" />
+
+        <Button
+            android:id="@+id/free"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/quantum_bluegrey100"
+            android:text="@string/freeparking"
+            android:textColor="@color/quantum_black_100" />
+
+        <Button
+            android:id="@+id/night"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/quantum_bluegrey100"
+            android:text="@string/nightparking"
+            android:textColor="@color/quantum_black_100" />
+
+    </LinearLayout>
+
     <ListView
         android:id="@+id/searchResults"
         android:layout_width="358dp"
         android:layout_height="597dp"
         android:layout_marginTop="80dp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/linearLayout" />
+        app:layout_constraintTop_toTopOf="@+id/linearLayout" >
+    </ListView>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

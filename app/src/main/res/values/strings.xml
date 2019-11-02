@@ -39,5 +39,21 @@
     <string name="dbName">cz2006</string>
     <string name="dbUsername">cz2006</string>
     <string name="dbPassword">cz2006ala</string>
+    <string name="multi_storey">MULTI-STOREY CAR PARK</string>
+    <string name="surface_carpark">SURFACE CAR PARK</string>
+    <string name="basement_carpark">BASEMENT CAR PARK</string>
+    <string name="covered_carpark">COVERED CAR PARK</string>
+    <string name="mechanised_surface">MECHANISED AND SURFACE CAR PARK</string>
+    <string name="mechanised_carpark">MECHANISED CAR PARK</string>
+    <string name="electronic">ELECTRONIC PARKING</string>
+    <string name="coupon">COUPON PARKING</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="null_option">-</string>
+    <string name="typeofparking">type of parking</string>
+    <string name="parkingsystem">parking system</string>
+    <string name="shorttermparking">short term parking</string>
+    <string name="freeparking">free parking</string>
+    <string name="nightparking">night parking</string>
     <!--If there are issues with a key, replace the key here and also in google_maps_api.xml-->
 </resources>

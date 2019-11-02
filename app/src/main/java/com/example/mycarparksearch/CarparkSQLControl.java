@@ -45,11 +45,10 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
-    /*
-    To pass in a key word (carParkNo or address) to search for car parks in the database
-    Return an ArrayList of car parks that match the keyword
-     */
-    public ArrayList<CarparkEntity> queryCarparks(String keywords) throws SQLException {
+    public ArrayList<CarparkEntity> queryCarparksWithFilters(String keywords,
+                                                             String type, String system,
+                                                             String short_term, String free,
+                                                             String night) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
                 throw new SQLException("Connection to database failed!");
@@ -62,7 +61,32 @@ public class CarparkSQLControl extends SQLControl {
         }
 
         String sql = "SELECT carParkNo, address FROM cz2006.HDBCarPark WHERE carParkNo LIKE '" + matcher +
-                "' OR address LIKE '"+ matcher + "';";
+                "' OR address LIKE '"+ matcher + "'";
+        if (type != null) {
+            sql += " AND carParkType = '" + type + "'";
+        }
+        if (system != null) {
+            sql += " AND typeOfParkingSystem = '" + system + "'";
+        }
+        if (short_term != null) {
+            if (short_term.equals(context.getString(R.string.no))) {
+                sql += " AND shortTermParking = 'NO'";
+            } else if (short_term.equals(context.getString(R.string.yes))) {
+                sql += " AND shortTermParking != 'NO'";
+            }
+        }
+        if (free != null) {
+            if (free.equals(context.getString(R.string.no))) {
+                sql += " AND freeParking = 'NO'";
+            } else if (short_term.equals(context.getString(R.string.yes))) {
+                sql += " AND freeParking != 'NO'";
+            }
+        }
+        if (night != null) {
+            sql += " AND nightParking = '" + night + "'";
+        }
+        sql += ";";
+
         ResultSet result = query(sql);
 
         ArrayList<CarparkEntity> carparkList = new ArrayList<CarparkEntity>();
