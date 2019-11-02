@@ -16,6 +16,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,6 +46,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -54,11 +61,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.mycarparksearch.R.id.save_carpark;
+import static com.example.mycarparksearch.R.id.search_carpark;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -82,6 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayAdapter adapter;
     private ListView favoritelist;
     private ListView savedCarparkList;
+    PlacesClient placesClient;
     private View headerView;
     private View carparkheaderView;
     private boolean resumeWithFav = false;
@@ -120,6 +130,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
         savedCarparkList.addHeaderView(carparkheaderView);
 
+      
+      
+        //initialise search places fragment
+        if (!Places.isInitialized()){
+            Places.initialize(getApplicationContext(),"AIzaSyDNGI_gB0BZnUiD2ZslUGABrz_eLhBSwzg");
+        }
+
+        placesClient = Places.createClient(this);
+
+        final AutocompleteSupportFragment autocompleteSupportFragment =
+                (com.google.android.libraries.places.widget.AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.LAT_LNG, Place.Field.NAME));
+
+        autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                final LatLng latLng = place.getLatLng();
+
+                Log.i("Place", "onPlaceSelected:"+latLng.latitude+"\n"+latLng.longitude);
+
+                if (destinationMarker == null) {
+                    MarkerOptions options = new MarkerOptions();
+                    options.position(latLng);
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    destinationMarker = mMap.addMarker(options);
+                }
+                else {
+                    destinationMarker.setPosition(latLng);
+                }
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            }
+            @Override
+            public void onError(@NonNull Status status) {
+
+            }
+        });
+      
+      
+      
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
         locationEditText = findViewById(R.id.locationEditText);
@@ -147,7 +198,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 return true;
                             case save_carpark:
                                 savedCarparkList.setVisibility(View.VISIBLE);
-                                viewSavedCarpark();
+                            viewSavedCarpark();
+                            return true;
+                            case search_carpark:
+                                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                                startActivity(intent);
+                                return true;
                             default:
                                 return false;
                         }
@@ -342,6 +398,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
+                        location.setLatitude(1.276307);
+                        location.setLongitude(103.840811);
                         currentLocation = location;
                         Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                                 +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
