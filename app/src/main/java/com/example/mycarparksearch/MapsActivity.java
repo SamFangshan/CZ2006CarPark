@@ -118,6 +118,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         db = new SQLiteControl(this);
         listItem = new ArrayList<>();
 
+        setUpUIElements();
+    }
+
+    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
+    LocationCallback locationCB = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Log.i("Callback","Callback triggered!");
+            List<Location> locationList = locationResult.getLocations();
+            if (locationList.size() > 0) {
+                //The last location in the list is the newest
+                Location location = locationList.get(locationList.size() - 1);
+                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                currentLocation = location;
+
+                if (currentLocationMarker != null) currentLocationMarker.remove();
+
+                //Place current location marker
+                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+                currentLocationMarker = mMap.addMarker((markerOptions));
+                currentLocationMarker.setPosition(latLng);
+                if (!firstTime) {
+                    firstTime = true;
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                }
+            }
+        }
+    };
+
+    private void setUpUIElements() {
         favoritelist = (ListView) findViewById(R.id.favorite_list);
         favoritelist.setVisibility(View.GONE);
 
@@ -130,8 +162,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
         savedCarparkList.addHeaderView(carparkheaderView);
 
-      
-      
+        initialiseSearchPlaceFragment();
+
+        // Sets button colour to null
+        menuButton = findViewById(R.id.menuButton);
+        locationEditText = findViewById(R.id.carparkEditText);
+
+        clbutton = findViewById(R.id.clButton);
+        clbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fetchLastLocation();
+                updateLastLocation();
+            }
+        });
+
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PopupMenu popup = new PopupMenu(MapsActivity.this, view);
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.save_favorites:
+                                favoritelist.setVisibility(View.VISIBLE);
+                                viewFavorite();
+                                return true;
+                            case save_carpark:
+                                savedCarparkList.setVisibility(View.VISIBLE);
+                                viewSavedCarpark();
+                                return true;
+                            case search_carpark:
+                                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                                startActivityForResult(intent, 1);
+                                return true;
+                            default:
+                                return false;
+                        }
+                    }
+                });
+                popup.show();
+            }
+        });
+
+        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        mapFrag.getMapAsync(this);
+    }
+
+    private void initialiseSearchPlaceFragment() {
         //initialise search places fragment
         if (!Places.isInitialized()){
             Places.initialize(getApplicationContext(),"AIzaSyDNGI_gB0BZnUiD2ZslUGABrz_eLhBSwzg");
@@ -168,90 +247,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
-      
-      
-      
-        // Sets button colour to null
-        menuButton = findViewById(R.id.menuButton);
-        locationEditText = findViewById(R.id.carparkEditText);
-
-        clbutton = findViewById(R.id.clButton);
-        clbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fetchLastLocation();
-                updateLastLocation();
-            }
-        });
-
-        menuButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopupMenu popup = new PopupMenu(MapsActivity.this, view);
-                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.save_favorites:
-                                favoritelist.setVisibility(View.VISIBLE);
-                                viewFavorite();
-                                return true;
-                            case save_carpark:
-                                savedCarparkList.setVisibility(View.VISIBLE);
-                            viewSavedCarpark();
-                            return true;
-                            case search_carpark:
-                                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
-                                startActivityForResult(intent, 1);
-                                return true;
-                            default:
-                                return false;
-                        }
-                    }
-                });
-                popup.show();
-            }
-        });
-
-        locationEditText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                return true;
-            }
-        });
-
-        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-        mapFrag.getMapAsync(this);
     }
-
-    // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
-    LocationCallback locationCB = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            Log.i("Callback","Callback triggered!");
-            List<Location> locationList = locationResult.getLocations();
-            if (locationList.size() > 0) {
-                //The last location in the list is the newest
-                Location location = locationList.get(locationList.size() - 1);
-                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
-                currentLocation = location;
-
-                if (currentLocationMarker != null) currentLocationMarker.remove();
-
-                //Place current location marker
-                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-                currentLocationMarker = mMap.addMarker((markerOptions));
-                currentLocationMarker.setPosition(latLng);
-                if (!firstTime) {
-                    firstTime = true;
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-                }
-            }
-        }
-    };
 
 
     @Override

@@ -64,49 +64,52 @@ public class InformationActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Failed to get car park information!\nTask interrupted.", Toast.LENGTH_SHORT).show();
         }
         if (carpark != null) {
-            showFullInformation();
-
-            //CarparkEntity finalCarpark = carpark;
-            viewMapButton = findViewById(R.id.viewMapButton);
-            viewMapButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    performViewMapButton();
-                }
-            });
-
-            sqLiteControl = new SQLiteControl(getApplicationContext());
-            favoriteButton = findViewById(R.id.favoriteButton);
-            likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
-            likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
-            if (sqLiteControl.getFavorite(carParkNo)) {
-                favoriteButton.setImageDrawable(likeRedDrawable);
-            }
-            favoriteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    performFavoriteButton();
-                }
-            });
-
-            commentButton = findViewById(R.id.commentButton);
-            commentButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    performCommentButton();
-                }
-            });
-
-            directionsButton = findViewById(R.id.directionsButton);
-            directionsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    performDirectionsButton();
-                }
-            });
-
+            setUpUIElements();
             sqLiteControl.close();
         }
+    }
+
+    private void setUpUIElements() {
+        showFullInformation();
+
+        //CarparkEntity finalCarpark = carpark;
+        viewMapButton = findViewById(R.id.viewMapButton);
+        viewMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                performViewMapButton();
+            }
+        });
+
+        sqLiteControl = new SQLiteControl(getApplicationContext());
+        favoriteButton = findViewById(R.id.favoriteButton);
+        likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
+        likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
+        if (sqLiteControl.getFavorite(carParkNo)) {
+            favoriteButton.setImageDrawable(likeRedDrawable);
+        }
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                performFavoriteButton();
+            }
+        });
+
+        commentButton = findViewById(R.id.commentButton);
+        commentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                performCommentButton();
+            }
+        });
+
+        directionsButton = findViewById(R.id.directionsButton);
+        directionsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                performDirectionsButton();
+            }
+        });
     }
 
     private void performViewMapButton() {

@@ -51,6 +51,10 @@ public class SaveCarparkActivity extends AppCompatActivity {
         Intent intent = getIntent();
         carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
 
+        setUpUIElements();
+    }
+
+    private void setUpUIElements() {
         carParkNoText = findViewById(R.id.carParkNo);
         carParkNoText.append(carParkNo);
 

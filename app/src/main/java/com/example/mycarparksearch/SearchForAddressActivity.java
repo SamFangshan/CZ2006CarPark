@@ -50,7 +50,10 @@ public class SearchForAddressActivity extends AppCompatActivity {
 
         context = getApplicationContext();
         listItem = new ArrayList<>();
+        setUpUIElements();
+    }
 
+    private void setUpUIElements() {
         searchResults = findViewById(R.id.searchResults);
 
         setFilters();
@@ -85,14 +88,7 @@ public class SearchForAddressActivity extends AppCompatActivity {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    ArrayList<CarparkEntity> carparkList = null;
-                    try {
-                        carparkList = (ArrayList<CarparkEntity>)(new Search().execute(carparkEditText.getText().toString()).get());
-                    } catch (ExecutionException | InterruptedException e) {
-                        Toast.makeText(getApplicationContext(), "Failed to get search results!\nTask interrupted.", Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    viewSearchResults(carparkList);
+                    performEnter();
                     return true;
                 }
                 return false;
@@ -100,9 +96,18 @@ public class SearchForAddressActivity extends AppCompatActivity {
         });
     }
 
-    private void setFilters() {
-        filters = findViewById(R.id.filters);
+    private void performEnter() {
+        ArrayList<CarparkEntity> carparkList = null;
+        try {
+            carparkList = (ArrayList<CarparkEntity>)(new Search().execute(carparkEditText.getText().toString()).get());
+        } catch (ExecutionException | InterruptedException e) {
+            Toast.makeText(getApplicationContext(), "Failed to get search results!\nTask interrupted.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        viewSearchResults(carparkList);
+    }
 
+    private void setType() {
         type = findViewById(R.id.type);
         typeFilter = null;
         type.setOnClickListener(new View.OnClickListener() {
@@ -147,7 +152,9 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
 
+    private void setSystem() {
         system = findViewById(R.id.system);
         systemFilter = null;
         system.setOnClickListener(new View.OnClickListener() {
@@ -176,7 +183,9 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
 
+    private void setShortTerm() {
         short_term = findViewById(R.id.short_term);
         short_termFilter = null;
         short_term.setOnClickListener(new View.OnClickListener() {
@@ -205,7 +214,9 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
 
+    private void setFree() {
         free = findViewById(R.id.free);
         freeFilter = null;
         free.setOnClickListener(new View.OnClickListener() {
@@ -234,7 +245,9 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
 
+    private void setNight() {
         night = findViewById(R.id.night);
         nightFilter = null;
         night.setOnClickListener(new View.OnClickListener() {
@@ -263,6 +276,15 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
+
+    private void setFilters() {
+        filters = findViewById(R.id.filters);
+        setType();
+        setSystem();
+        setFree();
+        setShortTerm();
+        setNight();
     }
 
     private void viewSearchResults(ArrayList<CarparkEntity> carparkList) {

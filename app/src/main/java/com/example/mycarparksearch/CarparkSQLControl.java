@@ -111,7 +111,7 @@ public class CarparkSQLControl extends SQLControl {
         if (free != null) {
             if (free.equals(context.getString(R.string.no))) {
                 sql += " AND freeParking = 'NO'";
-            } else if (short_term.equals(context.getString(R.string.yes))) {
+            } else if (free.equals(context.getString(R.string.yes))) {
                 sql += " AND freeParking != 'NO'";
             }
         }
