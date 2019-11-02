@@ -16,6 +16,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,6 +46,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -54,35 +61,42 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.mycarparksearch.R.id.save_carpark;
+import static com.example.mycarparksearch.R.id.search_carpark;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    SupportMapFragment mapFrag;
-    Location currentLocation;
-    LocationRequest locationRQ;
-    Marker currentLocationMarker;
-    FusedLocationProviderClient fusedLocationProviderClient;
-    EditText locationEditText;
-    ImageButton menuButton;
-    ImageButton clbutton;
-    Marker destinationMarker;
+    private SupportMapFragment mapFrag;
+    private BottomAppBar bottomAppBar;
+    private ImageButton infobutton;
+    private TextView infotext;
+    private Location currentLocation;
+    private LocationRequest locationRQ;
+    private Marker currentLocationMarker;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private EditText locationEditText;
+    private ImageButton menuButton;
+    private ImageButton clbutton;
+    private Marker destinationMarker;
     private Polyline mPolyline;
-    boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
-    SQLiteControl db;
-    ArrayList<String>listItem;
-    ArrayAdapter adapter;
-    ListView favoritelist;
-    ListView savedCarparkList;
-    private boolean shouldExecuteOnresume = false;
-    private int countOnResume = 0;
+    private boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
+    private SQLiteControl db;
+    private ArrayList<String> listItem;
+    private ArrayAdapter adapter;
+    private ListView favoritelist;
+    private ListView savedCarparkList;
+    PlacesClient placesClient;
+    private View headerView;
+    private View carparkheaderView;
     private boolean resumeWithFav = false;
     private boolean resumeWithSav = false;
+    private HashMap<String, Marker> carParkNoToMarker;
     private Context context;
 
     private static final int REQUEST_CODE = 101;
@@ -98,72 +112,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         context = getApplicationContext();
+        carParkNoToMarker = new HashMap<String, Marker>();
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         db = new SQLiteControl(this);
         listItem = new ArrayList<>();
 
-        favoritelist = (ListView) findViewById(R.id.favorite_list);
-        favoritelist.setVisibility(View.GONE);
-
-        savedCarparkList = (ListView) findViewById(R.id.savedCarpark_List);
-        savedCarparkList.setVisibility(View.GONE);
-
-        View headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
-        favoritelist.addHeaderView(headerView);
-
-        View carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
-        savedCarparkList.addHeaderView(carparkheaderView);
-
-
-
-        // Sets button colour to null
-        menuButton = findViewById(R.id.menuButton);
-        locationEditText = findViewById(R.id.locationEditText);
-
-        clbutton = findViewById(R.id.clButton);
-        clbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fetchLastLocation();
-                updateLastLocation();
-            }
-        });
-
-        menuButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopupMenu popup = new PopupMenu(MapsActivity.this, view);
-                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.save_favorites:
-                                favoritelist.setVisibility(View.VISIBLE);
-                                viewFavorite();
-                                return true;
-                            case save_carpark:
-                                savedCarparkList.setVisibility(View.VISIBLE);
-                                viewSavedCarpark();
-                            default:
-                                return false;
-                        }
-                    }
-                });
-                popup.show();
-            }
-        });
-
-        locationEditText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                return true;
-            }
-        });
-
-        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-        mapFrag.getMapAsync(this);
+        setUpUIElements();
     }
 
     // LocationCallback is triggered when a LocationRequest gets a new coordinate to use
@@ -193,6 +148,106 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     };
+
+    private void setUpUIElements() {
+        favoritelist = (ListView) findViewById(R.id.favorite_list);
+        favoritelist.setVisibility(View.GONE);
+
+        savedCarparkList = (ListView) findViewById(R.id.savedCarpark_List);
+        savedCarparkList.setVisibility(View.GONE);
+
+        headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
+        favoritelist.addHeaderView(headerView);
+
+        carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
+        savedCarparkList.addHeaderView(carparkheaderView);
+
+        initialiseSearchPlaceFragment();
+
+        // Sets button colour to null
+        menuButton = findViewById(R.id.menuButton);
+        locationEditText = findViewById(R.id.carparkEditText);
+
+        clbutton = findViewById(R.id.clButton);
+        clbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fetchLastLocation();
+                updateLastLocation();
+            }
+        });
+
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PopupMenu popup = new PopupMenu(MapsActivity.this, view);
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.save_favorites:
+                                favoritelist.setVisibility(View.VISIBLE);
+                                viewFavorite();
+                                return true;
+                            case save_carpark:
+                                savedCarparkList.setVisibility(View.VISIBLE);
+                                viewSavedCarpark();
+                                return true;
+                            case search_carpark:
+                                Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
+                                startActivityForResult(intent, 1);
+                                return true;
+                            default:
+                                return false;
+                        }
+                    }
+                });
+                popup.show();
+            }
+        });
+
+        mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        mapFrag.getMapAsync(this);
+    }
+
+    private void initialiseSearchPlaceFragment() {
+        //initialise search places fragment
+        if (!Places.isInitialized()){
+            Places.initialize(getApplicationContext(),"AIzaSyDNGI_gB0BZnUiD2ZslUGABrz_eLhBSwzg");
+        }
+
+        placesClient = Places.createClient(this);
+
+        final AutocompleteSupportFragment autocompleteSupportFragment =
+                (com.google.android.libraries.places.widget.AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.LAT_LNG, Place.Field.NAME));
+
+        autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                final LatLng latLng = place.getLatLng();
+
+                Log.i("Place", "onPlaceSelected:"+latLng.latitude+"\n"+latLng.longitude);
+
+                if (destinationMarker == null) {
+                    MarkerOptions options = new MarkerOptions();
+                    options.position(latLng);
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    destinationMarker = mMap.addMarker(options);
+                }
+                else {
+                    destinationMarker.setPosition(latLng);
+                }
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+            }
+            @Override
+            public void onError(@NonNull Status status) {
+
+            }
+        });
+    }
 
 
     @Override
@@ -245,12 +300,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     @Override
     public void onBackPressed() {
-        if(favoritelist.getVisibility()==View.VISIBLE){
+        if(favoritelist.getVisibility() == View.VISIBLE){
 
             favoritelist.setVisibility(View.INVISIBLE);
             return;
         }
-        else if (savedCarparkList.getVisibility()==View.VISIBLE){
+        else if (savedCarparkList.getVisibility() == View.VISIBLE){
 
             savedCarparkList.setVisibility(View.INVISIBLE);
             return;
@@ -261,7 +316,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         adapter.notifyDataSetChanged();
     }
 
-    public void viewSavedCarpark(){
+    private void viewSavedCarpark(){
         Cursor cursor = db.viewSavedCarpark();
 
         listItem.clear();
@@ -299,19 +354,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
+            String carParkNo = e.getInformation(context.getString(R.string.carParkNo));
             double lat = Double.parseDouble(e.getInformation(context.getString(R.string.xCoord)));
             double lon = Double.parseDouble(e.getInformation(context.getString(R.string.yCoord)));
             String cpn = e.getInformation(context.getString(R.string.carParkNo));
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
-            mMap.addMarker((markerOptions));
+            Marker marker = mMap.addMarker((markerOptions));
+            carParkNoToMarker.put(carParkNo, marker);
         }
     }
 
     /*
     To check whether the device has Internet connection
      */
-    public static boolean isOnline(Context ctx) {
+    private static boolean isOnline(Context ctx) {
         ConnectivityManager connMgr = (ConnectivityManager) ctx
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -337,6 +394,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
+                        location.setLatitude(1.276307);
+                        location.setLongitude(103.840811);
                         currentLocation = location;
                         Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                                 +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
@@ -402,8 +461,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*
     To zoom and move to the location of a specific car park
      */
-    private void showCarPark(double latitude, double longitude) {
+    private void showCarPark(String carParkNo, double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
+        Marker marker = carParkNoToMarker.get(carParkNo);
+        marker.showInfoWindow();
         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
     }
@@ -420,7 +481,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String lat = intent.getStringExtra(CAR_PARK_LAT);
                 String lon = intent.getStringExtra(CAR_PARK_LON);
                 Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
-                showCarPark(Double.parseDouble(lat), Double.parseDouble(lon));
+                showCarPark(carParkNo, Double.parseDouble(lat), Double.parseDouble(lon));
             }
         }
     }
@@ -473,9 +534,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
-                ImageButton infobutton = findViewById(R.id.infobutton);
-                TextView infotext = findViewById(R.id.infotext);
+                bottomAppBar = findViewById(R.id.bottomAppBar);
+                infobutton = findViewById(R.id.infobutton);
+                infotext = findViewById(R.id.infotext);
                 bottomAppBar.setVisibility(View.GONE);
                 infobutton.setVisibility(View.GONE);
                 infotext.setVisibility(View.GONE);
@@ -486,11 +547,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     destinationMarker = mMap.addMarker(options);
                 }
                 else {
-                    MarkerOptions options = new MarkerOptions();
-                    options.position(latLng);
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                    destinationMarker.remove();
-                    destinationMarker = mMap.addMarker(options);
                     destinationMarker.setPosition(latLng);
                 }
                 // Getting URL to the Google Directions API
@@ -687,30 +743,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public boolean onMarkerClick(Marker marker) {
+        if (marker.getTitle() == null) {
+            return true;
+        }
         marker.showInfoWindow();
         String carParkNo = marker.getTitle();
-        BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
-        ImageButton infobutton = findViewById(R.id.infobutton);
-        TextView infotext = findViewById(R.id.infotext);
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        infobutton = findViewById(R.id.infobutton);
+        infotext = findViewById(R.id.infotext);
         infobutton.setBackgroundTintList(null);
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
         infotext.setVisibility(View.VISIBLE);
-        if (destinationMarker != null)
-            destinationMarker.remove();
-        drawRoute(marker.getPosition());
         infobutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //bottomAppBar.setVisibility(View.GONE);
-                //infobutton.setVisibility(View.GONE);
-                //infotext.setVisibility(View.GONE);
+                bottomAppBar.setVisibility(View.GONE);
+                infobutton.setVisibility(View.GONE);
+                infotext.setVisibility(View.GONE);
                 Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
                 intent.putExtra(CAR_PARK_NO, carParkNo);
                 MapsActivity.this.startActivityForResult(intent, 1);
-                /*if (mPolyline != null) {
-                    mPolyline.remove();
-                }*/
             }
         });
         return true;

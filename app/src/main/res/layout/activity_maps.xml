@@ -94,15 +94,25 @@
                 android:src="@drawable/main_menu_options_button" />
 
             <EditText
-                android:id="@+id/locationEditText"
+                android:id="@+id/carparkEditText"
                 android:layout_width="274dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="30dp"
                 android:ems="20"
                 android:inputType="textPostalAddress"
-                android:text="@string/findLocationText" />
+                android:text=" " />
 
         </LinearLayout>
+
+        <fragment
+            android:id="@+id/autocomplete_fragment"
+            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+            android:layout_width="300dp"
+            android:layout_height="61dp"
+            android:layout_marginStart="84dp"
+            map:layout_constraintStart_toStartOf="parent"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteY="61dp" />
 
         <ListView
             android:id="@+id/favorite_list"

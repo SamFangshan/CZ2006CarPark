@@ -1,5 +1,6 @@
 package com.example.mycarparksearch;
 
+import android.content.Context;
 import android.os.strictmode.SqliteObjectLeakedViolation;
 
 import org.junit.Test;
@@ -9,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static org.junit.Assert.*;
 
 public class CarparkSQLControlTest {
@@ -16,23 +18,27 @@ public class CarparkSQLControlTest {
     //Basis path testing
     @Test
     public void setDBConnection() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         assertEquals(con.setDBConnection(), true);
         con.close();
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.175", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         assertEquals(con.setDBConnection(), false);
         con.close();
 
         // test case 3
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         assertEquals(con.setDBConnection(), false);
         con.close();
     }
@@ -40,12 +46,14 @@ public class CarparkSQLControlTest {
     //Basis path testing
     @Test
     public void isDBConnected() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
         boolean isDBConnected = false;
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         try {
             isDBConnected = con.isDBConnected();
@@ -55,7 +63,8 @@ public class CarparkSQLControlTest {
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.175", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         try {
             isDBConnected = con.isDBConnected();
@@ -65,7 +74,8 @@ public class CarparkSQLControlTest {
 
         // test case 3
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         try {
             isDBConnected = con.isDBConnected();
@@ -75,7 +85,8 @@ public class CarparkSQLControlTest {
 
         // test case 4
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         try {
             isDBConnected = con.isDBConnected();
         } catch (SQLException e) {}
@@ -85,6 +96,7 @@ public class CarparkSQLControlTest {
 
     @Test
     public void query() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
         ResultSet resultSet = null;
         String expected = "";
@@ -93,7 +105,8 @@ public class CarparkSQLControlTest {
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         expected = "196 BOON LAY DR";
         try {
@@ -106,7 +119,8 @@ public class CarparkSQLControlTest {
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         expected = "4.5";
         try {
@@ -119,7 +133,8 @@ public class CarparkSQLControlTest {
 
         // test case 3
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         expected = "Connection to database failed!";
         try {
             con.query("SELECT * FROM cz2006.HDBCarPark;");
@@ -131,7 +146,8 @@ public class CarparkSQLControlTest {
 
         // test case 4
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         con.setDBConnection();
         try {
             resultSet = con.query("SELECT shortTermParking FROM cz2006.HDBCarPark where carParkNo = 'XXX';");
@@ -143,6 +159,7 @@ public class CarparkSQLControlTest {
 
     @Test
     public void getAllCarparkLocations() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
         String sql;
         ResultSet result;
@@ -153,7 +170,8 @@ public class CarparkSQLControlTest {
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         try {
             sql = "SELECT carParkNo, xCoord, yCoord FROM HDBCarPark;";
             result = con.query(sql);
@@ -173,7 +191,8 @@ public class CarparkSQLControlTest {
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         expected = "Connection to database failed!";
         try {
             con.getAllCarparkLocations();
@@ -185,6 +204,7 @@ public class CarparkSQLControlTest {
 
     @Test
     public void queryCarparks() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
         HashMap<String, String> carMap;
         CarparkEntity carparkEntity;
@@ -195,7 +215,8 @@ public class CarparkSQLControlTest {
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         carparkListExpected = new ArrayList<CarparkEntity>();
         carMap = new HashMap<String, String>();
         carMap.put("carParkNo", "BL8");
@@ -214,7 +235,23 @@ public class CarparkSQLControlTest {
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
+        carparkListExpected = new ArrayList<CarparkEntity>();
+        carMap = new HashMap<String, String>();
+        carMap.put("carParkNo", "BL8L");
+        carMap.put("address", "BLK 221 BL8 BOON LAY PLACE");
+        carparkEntity = new CarparkEntity(carMap);
+        carparkListExpected.add(carparkEntity);
+        try {
+            carparkListOutput = con.queryCarparks("BL8", null, null, "NO", null, null);
+        } catch (SQLException e) { }
+        assertEquals(carparkListOutput, carparkListExpected);
+
+        // test case 3
+        con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         carparkListExpected = new ArrayList<CarparkEntity>();
         carMap = new HashMap<String, String>();
         carMap.put("carParkNo", "BL3");
@@ -246,9 +283,10 @@ public class CarparkSQLControlTest {
         } catch (SQLException e) { }
         assertEquals(carparkListOutput, carparkListExpected);
 
-        // test case 3
+        // test case 4
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         expected = "Connection to database failed!";
         try {
             con.queryCarparks("nothing");
@@ -257,9 +295,10 @@ public class CarparkSQLControlTest {
         }
         assertEquals(output, expected);
 
-        // test case 4
+        // test case 5
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         carparkListExpected = new ArrayList<CarparkEntity>();
         try {
             carparkListOutput = con.queryCarparks("nothing");
@@ -270,6 +309,7 @@ public class CarparkSQLControlTest {
 
     @Test
     public void queryCarparkFullInfo() {
+        Context context = getApplicationContext();
         CarparkSQLControl con;
         HashMap<String, String> carMap;
         HashMap<String, Integer> lotsAvailable;
@@ -284,7 +324,8 @@ public class CarparkSQLControlTest {
 
         // test case 1
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         carMap = new HashMap<String, String>();
         carMap.put("carParkNo", "B49");
         carMap.put("address", "BLK 549/551 BEDOK NORTH AVENUE 1");
@@ -326,7 +367,8 @@ public class CarparkSQLControlTest {
 
         // test case 2
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cx2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cx2006", "cz2006", "cz2006ala",
+                context);
         expected = "Connection to database failed!";
         try {
             con.queryCarparkFullInfo("B49");
@@ -337,7 +379,8 @@ public class CarparkSQLControlTest {
 
         // test case 3
         con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+                "localhost", 3306, "cz2006", "cz2006", "cz2006ala",
+                context);
         expected = "Illegal operation on empty result set.";
         try {
             carparkEntityOutput = con.queryCarparkFullInfo("XXX");
