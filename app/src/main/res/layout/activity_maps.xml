@@ -94,7 +94,7 @@
                 android:src="@drawable/main_menu_options_button" />
 
             <EditText
-                android:id="@+id/locationEditText"
+                android:id="@+id/carparkEditText"
                 android:layout_width="274dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="30dp"

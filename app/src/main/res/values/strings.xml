@@ -3,6 +3,7 @@
     <string name="title_activity_maps">Map</string>
     <string name="map_key" translatable="false">AIzaSyCN2zyVMvCtbLE_7kGt4VbJFd2O8EQVCEo</string>
     <string name="findLocationText">Find a location</string>
+    <string name="findCarparkText">Find a car park</string>
     <string name="carParkNo">carParkNo</string>
     <string name="address">address</string>
     <string name="xCoord">xCoord</string>

@@ -87,7 +87,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Polyline mPolyline;
     private boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
     private SQLiteControl db;
-    private ArrayList<String>listItem;
+    private ArrayList<String> listItem;
     private ArrayAdapter adapter;
     private ListView favoritelist;
     private ListView savedCarparkList;
@@ -173,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
       
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
-        locationEditText = findViewById(R.id.locationEditText);
+        locationEditText = findViewById(R.id.carparkEditText);
 
         clbutton = findViewById(R.id.clButton);
         clbutton.setOnClickListener(new View.OnClickListener() {
@@ -202,7 +202,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             return true;
                             case search_carpark:
                                 Intent intent = new Intent(MapsActivity.this, SearchForAddressActivity.class);
-                                startActivity(intent);
+                                startActivityForResult(intent, 1);
                                 return true;
                             default:
                                 return false;
@@ -320,7 +320,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         adapter.notifyDataSetChanged();
     }
 
-    public void viewSavedCarpark(){
+    private void viewSavedCarpark(){
         Cursor cursor = db.viewSavedCarpark();
 
         listItem.clear();
@@ -372,7 +372,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*
     To check whether the device has Internet connection
      */
-    public static boolean isOnline(Context ctx) {
+    private static boolean isOnline(Context ctx) {
         ConnectivityManager connMgr = (ConnectivityManager) ctx
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
