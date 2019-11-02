@@ -12,6 +12,12 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class CommentActivity extends AppCompatActivity {
+    private TextView carParkNoText;
+    private RatingBar ratingBar;
+    private TextView commentText;
+    private Button submit;
+    private SQLiteControl sqLiteControl;
+    private String carParkNo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,34 +25,43 @@ public class CommentActivity extends AppCompatActivity {
         setContentView(R.layout.activity_comment);
 
         Intent intent = getIntent();
-        String carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
+        carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
 
-        TextView carParkNoText = findViewById(R.id.carParkNo);
+        carParkNoText = findViewById(R.id.carParkNo);
         carParkNoText.setText(carParkNo);
 
-        RatingBar ratingBar = findViewById(R.id.ratingBar);
-        TextView commentText = findViewById(R.id.commentText);
-        SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
+        ratingBar = findViewById(R.id.ratingBar);
+        commentText = findViewById(R.id.commentText);
+
+        sqLiteControl = new SQLiteControl(getApplicationContext());
         ArrayList<Object> result = sqLiteControl.getRating(carParkNo);
         if (result != null) {
-            ratingBar.setRating((float)result.get(0));
-            commentText.setText((String)result.get(1));
+            showPreviousCommentAndRating(result);
         }
 
-        Button submit = findViewById(R.id.submit);
+        submit = findViewById(R.id.submit);
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (ratingBar.getRating() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please provide rating!", Toast.LENGTH_SHORT).show();
-                } else if (commentText.getText().toString().trim().length() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please provide comments!", Toast.LENGTH_SHORT).show();
-                } else {
-                    sqLiteControl.updateRating(carParkNo, ratingBar.getRating(), commentText.getText().toString());
-                    Toast.makeText(getApplicationContext(), "Saved successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
+                performSubmit();
             }
         });
+    }
+
+    private void showPreviousCommentAndRating(ArrayList<Object> result) {
+        ratingBar.setRating((float)result.get(0));
+        commentText.setText((String)result.get(1));
+    }
+
+    private void performSubmit() {
+        if (ratingBar.getRating() == 0) {
+            Toast.makeText(getApplicationContext(), "Please provide rating!", Toast.LENGTH_SHORT).show();
+        } else if (commentText.getText().toString().trim().length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please provide comments!", Toast.LENGTH_SHORT).show();
+        } else {
+            sqLiteControl.updateRating(carParkNo, ratingBar.getRating(), commentText.getText().toString());
+            Toast.makeText(getApplicationContext(), "Saved successfully!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 }

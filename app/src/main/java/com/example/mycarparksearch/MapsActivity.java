@@ -63,26 +63,30 @@ import static com.example.mycarparksearch.R.id.save_carpark;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    SupportMapFragment mapFrag;
-    Location currentLocation;
-    LocationRequest locationRQ;
-    Marker currentLocationMarker;
-    FusedLocationProviderClient fusedLocationProviderClient;
-    EditText locationEditText;
-    ImageButton menuButton;
-    ImageButton clbutton;
-    Marker destinationMarker;
+    private SupportMapFragment mapFrag;
+    private BottomAppBar bottomAppBar;
+    private ImageButton infobutton;
+    private TextView infotext;
+    private Location currentLocation;
+    private LocationRequest locationRQ;
+    private Marker currentLocationMarker;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private EditText locationEditText;
+    private ImageButton menuButton;
+    private ImageButton clbutton;
+    private Marker destinationMarker;
     private Polyline mPolyline;
-    boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
-    SQLiteControl db;
-    ArrayList<String>listItem;
-    ArrayAdapter adapter;
-    ListView favoritelist;
-    ListView savedCarparkList;
-    private boolean shouldExecuteOnresume = false;
-    private int countOnResume = 0;
+    private boolean firstTime = false; // First-time makes sure that the app zooms in on your current location only once
+    private SQLiteControl db;
+    private ArrayList<String>listItem;
+    private ArrayAdapter adapter;
+    private ListView favoritelist;
+    private ListView savedCarparkList;
+    private View headerView;
+    private View carparkheaderView;
     private boolean resumeWithFav = false;
     private boolean resumeWithSav = false;
+    private HashMap<String, Marker> carParkNoToMarker;
     private Context context;
 
     private static final int REQUEST_CODE = 101;
@@ -98,6 +102,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         context = getApplicationContext();
+        carParkNoToMarker = new HashMap<String, Marker>();
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         db = new SQLiteControl(this);
@@ -109,13 +114,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         savedCarparkList = (ListView) findViewById(R.id.savedCarpark_List);
         savedCarparkList.setVisibility(View.GONE);
 
-        View headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
+        headerView = getLayoutInflater().inflate(R.layout.listview_header, null);
         favoritelist.addHeaderView(headerView);
 
-        View carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
+        carparkheaderView = getLayoutInflater().inflate(R.layout.savedcarpark_header, null);
         savedCarparkList.addHeaderView(carparkheaderView);
-
-
 
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
@@ -245,12 +248,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     @Override
     public void onBackPressed() {
-        if(favoritelist.getVisibility()==View.VISIBLE){
+        if(favoritelist.getVisibility() == View.VISIBLE){
 
             favoritelist.setVisibility(View.INVISIBLE);
             return;
         }
-        else if (savedCarparkList.getVisibility()==View.VISIBLE){
+        else if (savedCarparkList.getVisibility() == View.VISIBLE){
 
             savedCarparkList.setVisibility(View.INVISIBLE);
             return;
@@ -299,12 +302,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private void showAllCarparks(ArrayList<CarparkEntity> carparkList) {
         for (CarparkEntity e : carparkList) {
+            String carParkNo = e.getInformation(context.getString(R.string.carParkNo));
             double lat = Double.parseDouble(e.getInformation(context.getString(R.string.xCoord)));
             double lon = Double.parseDouble(e.getInformation(context.getString(R.string.yCoord)));
             String cpn = e.getInformation(context.getString(R.string.carParkNo));
             LatLng latLng = new LatLng(lat, lon);
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(cpn).icon(BitmapDescriptorFactory.fromResource(R.drawable.carpark));
-            mMap.addMarker((markerOptions));
+            Marker marker = mMap.addMarker((markerOptions));
+            carParkNoToMarker.put(carParkNo, marker);
         }
     }
 
@@ -402,8 +407,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*
     To zoom and move to the location of a specific car park
      */
-    private void showCarPark(double latitude, double longitude) {
+    private void showCarPark(String carParkNo, double latitude, double longitude) {
         LatLng latLng = new LatLng(latitude, longitude);
+        Marker marker = carParkNoToMarker.get(carParkNo);
+        marker.showInfoWindow();
         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
     }
@@ -420,7 +427,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String lat = intent.getStringExtra(CAR_PARK_LAT);
                 String lon = intent.getStringExtra(CAR_PARK_LON);
                 Toast.makeText(getApplicationContext(), carParkNo, Toast.LENGTH_SHORT).show();
-                showCarPark(Double.parseDouble(lat), Double.parseDouble(lon));
+                showCarPark(carParkNo, Double.parseDouble(lat), Double.parseDouble(lon));
             }
         }
     }
@@ -473,9 +480,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
-                ImageButton infobutton = findViewById(R.id.infobutton);
-                TextView infotext = findViewById(R.id.infotext);
                 bottomAppBar.setVisibility(View.GONE);
                 infobutton.setVisibility(View.GONE);
                 infotext.setVisibility(View.GONE);
@@ -684,9 +688,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         marker.showInfoWindow();
         String carParkNo = marker.getTitle();
-        BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
-        ImageButton infobutton = findViewById(R.id.infobutton);
-        TextView infotext = findViewById(R.id.infotext);
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        infobutton = findViewById(R.id.infobutton);
+        infotext = findViewById(R.id.infotext);
         infobutton.setBackgroundTintList(null);
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);

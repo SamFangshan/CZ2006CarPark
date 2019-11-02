@@ -28,7 +28,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
         String name = intent.getStringExtra(SaveCarparkActivity.NAME);
         String days = intent.getStringExtra(SaveCarparkActivity.DAYS);
-        context = getApplicationContext();
+        this.context = context;
 
         boolean isDayToSend = checkIsDayToSend(days);
         if (!isDayToSend) {
