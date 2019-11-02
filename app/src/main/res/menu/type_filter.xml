@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/null_option"
+        android:title="@string/null_option" />
+    <item
+        android:id="@+id/multi_storey"
+        android:title="@string/multi_storey" />
+    <item
+        android:id="@+id/surface_carpark"
+        android:title="@string/surface_carpark"/>
+    <item
+        android:id="@+id/basement_carpark"
+        android:title="@string/basement_carpark"/>
+    <item
+        android:id="@+id/covered_carpark"
+        android:title="@string/covered_carpark" />
+    <item
+        android:id="@+id/mechanised_surface"
+        android:title="@string/mechanised_surface"/>
+    <item
+        android:id="@+id/mechanised_carpark"
+        android:title="@string/mechanised_surface"/>
+</menu>

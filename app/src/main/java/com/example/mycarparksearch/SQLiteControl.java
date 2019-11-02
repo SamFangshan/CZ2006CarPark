@@ -28,8 +28,11 @@ public class SQLiteControl extends SQLiteOpenHelper {
                 + "(CarParkNo TEXT PRIMARY KEY, isFavorite INTEGER)";
         String createRating = "CREATE TABLE `Rating` "
                 + "(CarParkNo TEXT PRIMARY KEY, Rating REAL, Comment TEXT)";
+        String createSavedCarpark = "CREATE TABLE `SavedCarpark` "
+                + "(CarParkNo TEXT PRIMARY KEY, Name TEXT, Time TEXT, Days TEXT, NotifyBy TEXT)";
         db.execSQL(createFavorite);
         db.execSQL(createRating);
+        db.execSQL(createSavedCarpark);
     }
 
     /*
@@ -40,8 +43,10 @@ public class SQLiteControl extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         String dropFavorite = "DROP TABLE IF EXISTS `Favorite`";
         String dropRating = "DROP TABLE IF EXISTS `Rating`";
+        String dropSavedCarpark = "DROP TABLE IF EXISTS `SavedCarpark`";
         db.execSQL(dropFavorite);
         db.execSQL(dropRating);
+        db.execSQL(dropSavedCarpark);
         onCreate(db);
     }
 
@@ -112,6 +117,34 @@ public class SQLiteControl extends SQLiteOpenHelper {
         return null;
     }
 
+    public void updateSavedCarpark(String carParkNo, String name, String time, String days, String notifyBy) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String updateSavedCarparkSQL = "INSERT OR REPLACE INTO `SavedCarpark` (CarParkNo, Name, Time, Days, NotifyBy) "
+                + " VALUES (\"" + carParkNo + "\", \"" + name + "\", \"" + time + "\", \"" + days + "\", \"" + notifyBy + "\")";
+        db.execSQL(updateSavedCarparkSQL);
+    }
+
+    public ArrayList<String> getSavedCarpark(String carParkNo) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String getSavedCarparkSQL = "SELECT Name, Time, Days, NotifyBy FROM `SavedCarpark` WHERE CarParkNo = \"" + carParkNo + "\"";
+        Cursor cursor = db.rawQuery(getSavedCarparkSQL, null);
+        if (cursor.moveToNext()) {
+            String name = cursor.getString(0);
+            String time = cursor.getString(1);
+            String days = cursor.getString(2);
+            String notifyBy = cursor.getString(3);
+            cursor.close();
+
+            ArrayList<String> result = new ArrayList<>();
+            result.add(name);
+            result.add(time);
+            result.add(days);
+            result.add(notifyBy);
+            return result;
+        }
+        cursor.close();
+        return null;
+    }
 
     public Cursor viewData() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -119,5 +152,11 @@ public class SQLiteControl extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, null);
         return cursor;
     }
-}
 
+    public Cursor viewSavedCarpark(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query ="SELECT Name, CarParkNo FROM 'SavedCarpark'";
+        Cursor cursor =db.rawQuery(query,null);
+        return cursor;
+    }
+}

@@ -10,6 +10,7 @@ import com.jcraft.jsch.Session;
 public class SQLControl {
     private static final int DEFAULT_SSH_PORT = 22;
     private static final int PORT = 53009;
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
 
     private String sshHost;
     private String sshUsername;
@@ -66,25 +67,24 @@ public class SQLControl {
             try {
                 setSSHConnection();
             } catch (JSchException e) {
-                Log.d("CREATION", e.toString());
+                Log.d("CREATION", "SSH connection failed");
                 close();
                 return false;
             }
         }
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName(DRIVER);
             String url = "jdbc:mysql://" + dbHost +":" + PORT + "/";
             try {
                 conn = DriverManager.getConnection(url+dbName, dbUsername, dbPassword);
             } catch (SQLException e) {
-                //Log.d("CREATION", e.getStackTrace().toString());
-                Log.d("CREATION", "H");
+                Log.d("CREATION", "Connection to database failed");
                 close();
                 return false;
             }
             return true;
         } catch (ClassNotFoundException e) {
-            Log.d("CREATION", "class");
+            Log.d("CREATION", "No jdbc.Driver class found");
             close();
             return false;
         }
@@ -117,6 +117,10 @@ public class SQLControl {
     public void close() {
         if (session != null) {
             session.disconnect();
+            try {
+                session.disconnect();
+                session.delPortForwardingL(PORT);
+            } catch (JSchException e) {}
         }
         if (conn != null) {
             try {
