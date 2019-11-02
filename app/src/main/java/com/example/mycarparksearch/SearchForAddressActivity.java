@@ -341,7 +341,7 @@ public class SearchForAddressActivity extends AppCompatActivity {
                 context.getString(R.string.dbPassword), context);
         ArrayList<CarparkEntity> carparkList = null;
         try {
-            carparkList = con.queryCarparksWithFilters(keywords, typeFilter, systemFilter,
+            carparkList = con.queryCarparks(keywords, typeFilter, systemFilter,
                                                 short_termFilter, freeFilter, nightFilter);
         } catch (SQLException e) {
             Toast.makeText(getApplicationContext(), "Failed to find car parks!", Toast.LENGTH_SHORT).show();
