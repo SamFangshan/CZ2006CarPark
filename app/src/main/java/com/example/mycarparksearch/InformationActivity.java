@@ -1,16 +1,14 @@
 package com.example.mycarparksearch;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -25,75 +23,85 @@ public class InformationActivity extends AppCompatActivity {
     private static final int MOTOR = 1;
     private static final int HEAVY = 2;
     private static final String NA = "N.A.";
+    private Context context;
+    private String carParkNo;
+    private CarparkEntity carpark;
+    private ImageButton viewMapButton;
+    private SQLiteControl sqLiteControl;
+    private ImageButton favoriteButton;
+    private Drawable likeRedDrawable;
+    private Drawable likeDrawable;
+    private ImageButton commentButton;
+    private ImageButton directionsButton;
+
+    private TextView carParkNoText;
+    private TextView addressText;
+    private TextView carParkTypeText;
+    private TextView typeOfParkingSystemText;
+    private TextView shortTermParkingText;
+    private TextView freeParking;
+    private TextView nightParking;
+    private TextView carParkDecksText;
+    private TextView gantryHeightText;
+    private TextView carParkBasementText;
+    private TextView ratesText;
+    private TextView lotsText;
+    private TabLayout ratesSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_information);
 
+        context = getApplicationContext();
+
         Intent intent = getIntent();
-        String carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
-        CarparkEntity carpark = null;
+        carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
+        carpark = null;
         try {
-            carpark = new InformationActivity.GetFullInformation().execute(carParkNo).get();
+            carpark = new InformationActivity.GetFullInformation().execute().get();
         } catch (ExecutionException | InterruptedException e) {
             Toast.makeText(getApplicationContext(), "Failed to get car park information!\nTask interrupted.", Toast.LENGTH_SHORT).show();
         }
         if (carpark != null) {
-            showFullInformation(carpark);
+            showFullInformation();
 
-            ImageButton viewMapButton = findViewById(R.id.viewMapButton);
-            CarparkEntity finalCarpark = carpark;
+            //CarparkEntity finalCarpark = carpark;
+            viewMapButton = findViewById(R.id.viewMapButton);
             viewMapButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent();
-                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-                    intent.putExtra(MapsActivity.CAR_PARK_LAT, finalCarpark.getInformation("xCoord"));
-                    intent.putExtra(MapsActivity.CAR_PARK_LON, finalCarpark.getInformation("yCoord"));
-                    setResult(RESULT_OK, intent);
-                    finish();
+                    performViewMapButton();
                 }
             });
 
-            SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
-            ImageButton favoriteButton = findViewById(R.id.favoriteButton);
-            Drawable likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
-            Drawable likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
+            sqLiteControl = new SQLiteControl(getApplicationContext());
+            favoriteButton = findViewById(R.id.favoriteButton);
+            likeRedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like_red);
+            likeDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.like);
             if (sqLiteControl.getFavorite(carParkNo)) {
                 favoriteButton.setImageDrawable(likeRedDrawable);
             }
             favoriteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
-                        sqLiteControl.deleteFavorite(carParkNo);
-                        favoriteButton.setImageDrawable(likeDrawable);
-                    } else {
-                        favoriteButton.setImageDrawable(likeRedDrawable);
-                        sqLiteControl.updateFavorite(carParkNo, true);
-                        Toast.makeText(getApplicationContext(), "Favorite!", Toast.LENGTH_SHORT).show();
-                    }
+                    performFavoriteButton();
                 }
             });
 
-            ImageButton commentButton = findViewById(R.id.commentButton);
+            commentButton = findViewById(R.id.commentButton);
             commentButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(InformationActivity.this, CommentActivity.class);
-                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-                    InformationActivity.this.startActivityForResult(intent, 1);
+                    performCommentButton();
                 }
             });
 
-            ImageButton directionsButton = findViewById(R.id.directionsButton);
+            directionsButton = findViewById(R.id.directionsButton);
             directionsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(InformationActivity.this, SaveCarparkActivity.class);
-                    intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
-                    InformationActivity.this.startActivityForResult(intent, 1);
+                    performDirectionsButton();
                 }
             });
 
@@ -101,13 +109,49 @@ public class InformationActivity extends AppCompatActivity {
         }
     }
 
+    private void performViewMapButton() {
+        Intent intent = new Intent();
+        intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        intent.putExtra(MapsActivity.CAR_PARK_LAT, carpark.getInformation(context.getString(R.string.xCoord)));
+        intent.putExtra(MapsActivity.CAR_PARK_LON, carpark.getInformation(context.getString(R.string.yCoord)));
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    private void performFavoriteButton() {
+        if (favoriteButton.getDrawable().getConstantState().equals(likeRedDrawable.getConstantState())) {
+            sqLiteControl.deleteFavorite(carParkNo);
+            favoriteButton.setImageDrawable(likeDrawable);
+        } else {
+            favoriteButton.setImageDrawable(likeRedDrawable);
+            sqLiteControl.updateFavorite(carParkNo, true);
+            Toast.makeText(getApplicationContext(), "Favorite!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void performCommentButton() {
+        Intent intent = new Intent(InformationActivity.this, CommentActivity.class);
+        intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        InformationActivity.this.startActivityForResult(intent, 1);
+    }
+
+    private void performDirectionsButton() {
+        //temp
+        Intent intent = new Intent(InformationActivity.this, SaveCarparkActivity.class);
+        intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        InformationActivity.this.startActivityForResult(intent, 1);
+    }
+
     /*
     To retrieve detailed car park information of a car park with a specific carParkNo from MySQL database
     Return a CarparkEntity
      */
-    private CarparkEntity getFullInformation(String carParkNo) {
-        CarparkSQLControl con = new CarparkSQLControl("172.21.148.165", "VMadmin", "cz2006ala",
-                "localhost", 3306, "cz2006", "cz2006", "cz2006ala");
+    private CarparkEntity getFullInformation() {
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
         CarparkEntity carpark;
         try {
             carpark = con.queryCarparkFullInfo(carParkNo);
@@ -121,64 +165,57 @@ public class InformationActivity extends AppCompatActivity {
     /*
     To display detailed car park information of a car park with a specific carParkNo on the screen
      */
-    private void showFullInformation(CarparkEntity carpark) {
-        TextView carParkNoText = findViewById(R.id.carParkNo);
-        carParkNoText.setText(carpark.getInformation("carParkNo"));
+    private void showFullInformation() {
+        carParkNoText = findViewById(R.id.carParkNo);
+        carParkNoText.setText(carpark.getInformation(context.getString(R.string.carParkNo)));
 
-        TextView addressText = findViewById(R.id.address);
-        addressText.setText(carpark.getInformation("address"));
+        addressText = findViewById(R.id.address);
+        addressText.setText(carpark.getInformation(context.getString(R.string.address)));
 
-        TextView carParkTypeText = findViewById(R.id.carParkType);
-        carParkTypeText.append(carpark.getInformation("carParkType"));
+        carParkTypeText = findViewById(R.id.carParkType);
+        carParkTypeText.append(carpark.getInformation(context.getString(R.string.carParkType)));
 
-        TextView typeOfParkingSystemText = findViewById(R.id.typeOfParkingSystem);
-        typeOfParkingSystemText.append(carpark.getInformation("typeOfParkingSystem"));
+        typeOfParkingSystemText = findViewById(R.id.typeOfParkingSystem);
+        typeOfParkingSystemText.append(carpark.getInformation(context.getString(R.string.typeOfParkingSystem)));
 
-        TextView shortTermParkingText = findViewById(R.id.shortTermParking);
-        shortTermParkingText.append(carpark.getInformation("shortTermParking"));
+        shortTermParkingText = findViewById(R.id.shortTermParking);
+        shortTermParkingText.append(carpark.getInformation(context.getString(R.string.shortTermParking)));
 
-        TextView freeParking = findViewById(R.id.freeParking);
-        freeParking.append(carpark.getInformation("freeParking"));
+        freeParking = findViewById(R.id.freeParking);
+        freeParking.append(carpark.getInformation(context.getString(R.string.freeParking)));
 
-        TextView nightParking = findViewById(R.id.nightParking);
-        nightParking.append(carpark.getInformation("nightParking"));
+        nightParking = findViewById(R.id.nightParking);
+        nightParking.append(carpark.getInformation(context.getString(R.string.nightParking)));
 
-        TextView carParkDecksText = findViewById(R.id.carParkDecks);
-        carParkDecksText.append(carpark.getInformation("carParkDecks"));
+        carParkDecksText = findViewById(R.id.carParkDecks);
+        carParkDecksText.append(carpark.getInformation(context.getString(R.string.carParkDecks)));
 
-        TextView gantryHeightText = findViewById(R.id.gantryHeight);
-        gantryHeightText.append(carpark.getInformation("gantryHeight"));
+        gantryHeightText = findViewById(R.id.gantryHeight);
+        gantryHeightText.append(carpark.getInformation(context.getString(R.string.gantryHeight)));
 
-        TextView carParkBasementText = findViewById(R.id.carParkBasement);
-        carParkBasementText.append(carpark.getInformation("carParkBasement"));
+        carParkBasementText = findViewById(R.id.carParkBasement);
+        carParkBasementText.append(carpark.getInformation(context.getString(R.string.carParkBasement)));
 
-        showRatesAndLots(carpark);
+        showRatesAndLots();
     }
 
     /*
     To show the rates and lots information of a CarparkEntity
      */
-    private void showRatesAndLots(CarparkEntity carpark) {
-        TextView ratesText = findViewById(R.id.rates);
-        ratesText.setText(carpark.getInformation("carRates"));
+    private void showRatesAndLots() {
+        ratesText = findViewById(R.id.rates);
+        ratesText.setText(carpark.getInformation(context.getString(R.string.carRates)));
 
-        TextView lotsText = findViewById(R.id.lots);
-        String lots = "Available lots: " + carpark.getLotsAvailable("carLotAvail")
-                + "/" + carpark.getInformation("carLotNum");
+        lotsText = findViewById(R.id.lots);
+        String lots = "Available lots: " + carpark.getLotsAvailable(context.getString(R.string.carLotAvail))
+                + "/" + carpark.getInformation(context.getString(R.string.carLotNum));
         lotsText.setText(lots);
 
-        TabLayout ratesSwitch = findViewById(R.id.ratesSwitch);
+        ratesSwitch = findViewById(R.id.ratesSwitch);
         ratesSwitch.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                int pos = tab.getPosition();
-                if (pos == CAR) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "car");
-                } else if (pos == MOTOR) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "motor");
-                } else if (pos == HEAVY) {
-                    switchRatesAndLots(carpark, ratesText, lotsText, "heavy");
-                }
+                switchTab(tab);
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) { }
@@ -187,18 +224,29 @@ public class InformationActivity extends AppCompatActivity {
         });
     }
 
+    private void switchTab(TabLayout.Tab tab) {
+        int pos = tab.getPosition();
+        if (pos == CAR) {
+            switchRatesAndLots(context.getString(R.string.car));
+        } else if (pos == MOTOR) {
+            switchRatesAndLots(context.getString(R.string.motor));
+        } else if (pos == HEAVY) {
+            switchRatesAndLots(context.getString(R.string.heavy));
+        }
+    }
+
     /*
     To switch between the rates and lots information of a CarparkEntity based on lot type
      */
-    private void switchRatesAndLots(CarparkEntity carpark, TextView ratesText, TextView lotsText, String type) {
-        String rates = carpark.getInformation(type + "Rates");
+    private void switchRatesAndLots(String type) {
+        String rates = carpark.getInformation(type + context.getString(R.string.rateSuffix));
         if (rates != null) {
             ratesText.setText(rates);
         } else {
             ratesText.setText(NA);
         }
-        String lots = "Available lots: " + carpark.getLotsAvailable(type + "LotAvail")
-                + "/" + carpark.getInformation(type + "LotNum");
+        String lots = "Available lots: " + carpark.getLotsAvailable(type + context.getString(R.string.lotAvailSuffix))
+                + "/" + carpark.getInformation(type + context.getString(R.string.lotNumSuffix));
         lotsText.setText(lots);
     }
 
@@ -207,10 +255,10 @@ public class InformationActivity extends AppCompatActivity {
     Return a CarparkEntity
     This task requires Internet access, so AsyncTask is used to create a different thread
      */
-    private class GetFullInformation extends AsyncTask<String, Void, CarparkEntity> {
+    private class GetFullInformation extends AsyncTask<Void, Void, CarparkEntity> {
         @Override
-        protected CarparkEntity doInBackground(String[] carParkNos) {
-            return getFullInformation(carParkNos[0]);
+        protected CarparkEntity doInBackground(Void... voids) {
+            return getFullInformation();
         }
     }
 }

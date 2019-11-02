@@ -32,6 +32,14 @@ public class SaveCarparkActivity extends AppCompatActivity {
     private static final int MINUTE = 1;
     private TimePickerDialog.OnTimeSetListener time_listener;
     private TimePickerDialog.OnTimeSetListener minute_listener;
+    private SQLiteControl sqLiteControl;
+    private String carParkNo;
+    private TextView carParkNoText;
+    private TextView nameText;
+    private TextView timeText;
+    private ChipGroup days;
+    private TextView notifyText;
+    private ImageButton save;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -39,31 +47,23 @@ public class SaveCarparkActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_save_carpark);
 
-        SQLiteControl sqLiteControl = new SQLiteControl(getApplicationContext());
+        sqLiteControl = new SQLiteControl(getApplicationContext());
         Intent intent = getIntent();
-        String carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
+        carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
 
-        TextView carParkNoText = findViewById(R.id.carParkNo);
+        carParkNoText = findViewById(R.id.carParkNo);
         carParkNoText.append(carParkNo);
 
-        TextView nameText = findViewById(R.id.nameText);
-        TextView timeText = findViewById(R.id.timeText);
-        ChipGroup days = findViewById(R.id.daysChips);
-        TextView notifyText = findViewById(R.id.time2);
-        ImageButton save = findViewById(R.id.saveButton);
+        nameText = findViewById(R.id.nameText);
+        timeText = findViewById(R.id.timeText);
+        days = findViewById(R.id.daysChips);
+        notifyText = findViewById(R.id.time2);
+        save = findViewById(R.id.saveButton);
 
         ArrayList<String> savedCarparkHistory = new ArrayList<String>();
         savedCarparkHistory = sqLiteControl.getSavedCarpark(carParkNo);
         if (savedCarparkHistory != null) {
-            nameText.setText(savedCarparkHistory.get(0));
-            timeText.setText(savedCarparkHistory.get(1));
-            StringTokenizer st = new StringTokenizer(savedCarparkHistory.get(2));
-            while(st.hasMoreTokens()){
-                int daysIndex = Integer.parseInt(st.nextToken());
-                Chip chip = (Chip) days.getChildAt(daysIndex);
-                chip.setChecked(true);
-            }
-            notifyText.setText(savedCarparkHistory.get(3));
+            showPreviousSetting(savedCarparkHistory);
         }
 
         timeText.setOnClickListener(new View.OnClickListener() {
@@ -85,16 +85,7 @@ public class SaveCarparkActivity extends AppCompatActivity {
 
             @Override
             public void onTimeSet(TimePicker view, int hour, int minute) {
-                String hourText = String.valueOf(hour);
-                String minuteText = String.valueOf(minute);
-                if (hour < 10) {
-                    hourText = "0" + hour;
-                }
-                if (minute < 10) {
-                    minuteText = "0" + minute;
-                }
-                String time = hourText + ":" + minuteText;
-                timeText.setText(time);
+                setTimeString(hour, minute);
             }
         };
 
@@ -102,48 +93,14 @@ public class SaveCarparkActivity extends AppCompatActivity {
 
             @Override
             public void onTimeSet(TimePicker view, int hour, int minute) {
-                String hourText = String.valueOf(hour);
-                String minuteText = String.valueOf(minute);
-                if (hour < 10) {
-                    hourText = "0" + hour;
-                }
-                if (minute < 10) {
-                    minuteText = "0" + minute;
-                }
-                String time = hourText + ":" + minuteText;
-                notifyText.setText(time);
+                setMinuteString(hour, minute);
             }
         };
 
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String daysClickedString = "";
-                ArrayList<Integer> daysClicked = new ArrayList<Integer>();
-                for (int i = 0; i < days.getChildCount(); i++) {
-                    Chip chip = (Chip) days.getChildAt(i);
-                    if (chip.isChecked()) {
-                        daysClicked.add(i);
-                        daysClickedString += i + " ";
-                    }
-                }
-                if (nameText.getText().toString().length() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please input a name!", Toast.LENGTH_SHORT).show();
-                } else if (timeText.getText().toString().length() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please enter the time when you depart!", Toast.LENGTH_SHORT).show();
-                } else if (daysClicked.size() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please select at least one day!", Toast.LENGTH_SHORT).show();
-                } else if (notifyText.getText().toString().length() == 0) {
-                    Toast.makeText(getApplicationContext(), "Please enter by how much time you want to notified!", Toast.LENGTH_SHORT).show();
-                } else if (!notifyText.getText().toString().substring(0,2).equals("00")) {
-                    Toast.makeText(getApplicationContext(), "The time set should not be more than one hour before!", Toast.LENGTH_SHORT).show();
-                } else {
-                    sqLiteControl.updateSavedCarpark(carParkNo, nameText.getText().toString(),
-                            timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
-                    setNotification(carParkNo, nameText.getText().toString(),
-                            timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
-                    finish();
-                }
+                performSave();
             }
         });
     }
@@ -179,28 +136,89 @@ public class SaveCarparkActivity extends AppCompatActivity {
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
-    protected Dialog createDialog(int id) {
-
-        // Get the calander
+    private Dialog createDialog(int id) {
         Calendar c = Calendar.getInstance();
-
-        // From calander get the year, month, day, hour, minute\
         int hour = c.get(Calendar.HOUR_OF_DAY);
         int minute = c.get(Calendar.MINUTE);
 
         switch (id) {
             case TIME:
-
-                // Open the timepicker dialog
                 return new TimePickerDialog(SaveCarparkActivity.this, time_listener, hour,
                         minute, false);
             case MINUTE:
-
-                // Open the timepicker dialog
                 return new TimePickerDialog(SaveCarparkActivity.this, minute_listener, 0,
                         0, true);
-
         }
         return null;
+    }
+
+    private void showPreviousSetting(ArrayList<String> savedCarparkHistory) {
+        nameText.setText(savedCarparkHistory.get(0));
+        timeText.setText(savedCarparkHistory.get(1));
+        StringTokenizer st = new StringTokenizer(savedCarparkHistory.get(2));
+        while(st.hasMoreTokens()){
+            int daysIndex = Integer.parseInt(st.nextToken());
+            Chip chip = (Chip) days.getChildAt(daysIndex);
+            chip.setChecked(true);
+        }
+        notifyText.setText(savedCarparkHistory.get(3));
+    }
+
+    private void setTimeString(int hour, int minute) {
+        String hourText = String.valueOf(hour);
+        String minuteText = String.valueOf(minute);
+        if (hour < 10) {
+            hourText = "0" + hour;
+        }
+        if (minute < 10) {
+            minuteText = "0" + minute;
+        }
+        String time = hourText + ":" + minuteText;
+        timeText.setText(time);
+    }
+
+    private void setMinuteString(int hour, int minute) {
+        if (hour > 0) {
+            Toast.makeText(getApplicationContext(), "The time set should not exceed an hour!", Toast.LENGTH_SHORT).show();
+            notifyText.setText("");
+            return;
+        }
+        String hourText = String.valueOf(hour);
+        String minuteText = String.valueOf(minute);
+        if (hour < 10) {
+            hourText = "0" + hour;
+        }
+        if (minute < 10) {
+            minuteText = "0" + minute;
+        }
+        String time = hourText + ":" + minuteText;
+        notifyText.setText(time);
+    }
+
+    private void performSave() {
+        String daysClickedString = "";
+        ArrayList<Integer> daysClicked = new ArrayList<Integer>();
+        for (int i = 0; i < days.getChildCount(); i++) {
+            Chip chip = (Chip) days.getChildAt(i);
+            if (chip.isChecked()) {
+                daysClicked.add(i);
+                daysClickedString += i + " ";
+            }
+        }
+        if (nameText.getText().toString().length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please input a name!", Toast.LENGTH_SHORT).show();
+        } else if (timeText.getText().toString().length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please enter the time when you depart!", Toast.LENGTH_SHORT).show();
+        } else if (daysClicked.size() == 0) {
+            Toast.makeText(getApplicationContext(), "Please select at least one day!", Toast.LENGTH_SHORT).show();
+        } else if (notifyText.getText().toString().length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please enter by how much time you want to notified!", Toast.LENGTH_SHORT).show();
+        } else {
+            sqLiteControl.updateSavedCarpark(carParkNo, nameText.getText().toString(),
+                    timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
+            setNotification(carParkNo, nameText.getText().toString(),
+                    timeText.getText().toString(), daysClickedString, notifyText.getText().toString());
+            finish();
+        }
     }
 }

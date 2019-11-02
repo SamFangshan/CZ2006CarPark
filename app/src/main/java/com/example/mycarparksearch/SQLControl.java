@@ -10,6 +10,7 @@ import com.jcraft.jsch.Session;
 public class SQLControl {
     private static final int DEFAULT_SSH_PORT = 22;
     private static final int PORT = 53009;
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
 
     private String sshHost;
     private String sshUsername;
@@ -72,7 +73,7 @@ public class SQLControl {
             }
         }
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName(DRIVER);
             String url = "jdbc:mysql://" + dbHost +":" + PORT + "/";
             try {
                 conn = DriverManager.getConnection(url+dbName, dbUsername, dbPassword);
