@@ -538,6 +538,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                bottomAppBar = findViewById(R.id.bottomAppBar);
+                infobutton = findViewById(R.id.infobutton);
+                infotext = findViewById(R.id.infotext);
                 bottomAppBar.setVisibility(View.GONE);
                 infobutton.setVisibility(View.GONE);
                 infotext.setVisibility(View.GONE);
@@ -744,6 +747,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public boolean onMarkerClick(Marker marker) {
+        if (marker.getTitle() == null) {
+            return true;
+        }
         marker.showInfoWindow();
         String carParkNo = marker.getTitle();
         bottomAppBar = findViewById(R.id.bottomAppBar);
