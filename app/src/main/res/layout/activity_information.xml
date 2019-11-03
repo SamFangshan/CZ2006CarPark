@@ -190,7 +190,7 @@
         app:layout_constraintTop_toBottomOf="@+id/rates" />
 
     <ImageButton
-        android:id="@+id/directionsButton"
+        android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -198,20 +198,20 @@
         android:background="@drawable/button_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/navigation" />
+        app:srcCompat="@drawable/save"/>
 
     <TextView
-        android:id="@+id/directionsText"
+        android:id="@+id/saveText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
-        android:text="Directions"
+        android:text="Notify Me"
         android:textColor="#000000"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/directionsButton"
+        app:layout_constraintEnd_toEndOf="@+id/saveButton"
         app:layout_constraintHorizontal_bias="0.222"
-        app:layout_constraintStart_toStartOf="@+id/directionsButton"
-        app:layout_constraintTop_toBottomOf="@+id/directionsButton"
+        app:layout_constraintStart_toStartOf="@+id/saveButton"
+        app:layout_constraintTop_toBottomOf="@+id/saveButton"
         app:layout_constraintVertical_bias="0.683" />
 
     <TextView
@@ -236,8 +236,33 @@
         android:layout_marginBottom="28dp"
         android:background="@drawable/button_background"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/directionsButton"
+        app:layout_constraintStart_toEndOf="@+id/saveButton"
         app:srcCompat="@drawable/comment" />
+
+    <ImageButton
+        android:id="@+id/directionsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="28dp"
+        android:background="@drawable/button_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/commentButton"
+        app:layout_constraintEnd_toStartOf="@+id/favoriteButton"
+        app:srcCompat="@drawable/navigation" />
+
+    <TextView
+        android:id="@+id/directionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:text="Go"
+        android:textColor="#000000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/directionsButton"
+        app:layout_constraintStart_toStartOf="@+id/directionsButton"
+        app:layout_constraintTop_toBottomOf="@+id/directionsButton" />
 
     <ImageButton
         android:id="@+id/favoriteButton"

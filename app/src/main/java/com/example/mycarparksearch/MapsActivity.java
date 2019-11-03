@@ -16,7 +16,6 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -28,14 +27,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
-import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
@@ -65,7 +61,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
 import static com.example.mycarparksearch.R.id.save_carpark;
 import static com.example.mycarparksearch.R.id.search_carpark;
 
@@ -80,7 +75,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest locationRQ;
     private Marker currentLocationMarker;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private EditText locationEditText;
     private ImageButton menuButton;
     private ImageButton clbutton;
     private Marker destinationMarker;
@@ -98,12 +92,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean resumeWithSav = false;
     private HashMap<String, Marker> carParkNoToMarker;
     private Context context;
-
     private static final int REQUEST_CODE = 101;
     public static final String CAR_PARK_NO = "com.example.mycarparksearch.CAR_PARK_NO";
     public static final String CAR_PARK_LAT = "com.example.mycarparksearch.CAR_PARK_LAT";
     public static final String CAR_PARK_LON = "com.example.mycarparksearch.CAR_PARK_LON";
-
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -167,7 +159,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Sets button colour to null
         menuButton = findViewById(R.id.menuButton);
-        locationEditText = findViewById(R.id.carparkEditText);
 
         clbutton = findViewById(R.id.clButton);
         clbutton.setOnClickListener(new View.OnClickListener() {
@@ -451,6 +442,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ArrayList<CarparkEntity> carparkList = null;
         try {
             carparkList = con.getAllCarparkLocations();
+            con.close();
         } catch (SQLException e) {
             Toast.makeText(getApplicationContext(), "Failed to get car park locations!", Toast.LENGTH_SHORT).show();
             return null;
