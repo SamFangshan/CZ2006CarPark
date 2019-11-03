@@ -755,7 +755,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
         infotext.setVisibility(View.VISIBLE);
-        destinationMarker.remove();
+        if (destinationMarker != null) {
+            destinationMarker.remove();
+            destinationMarker = null;
+        }
         drawRoute(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
 
         infobutton.setOnClickListener(new View.OnClickListener() {
