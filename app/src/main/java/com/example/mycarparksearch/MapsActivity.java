@@ -395,8 +395,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
-                        //location.setLatitude(1.276307);
-                        //location.setLongitude(103.840811);
                         currentLocation = location;
                         Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                                 +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
