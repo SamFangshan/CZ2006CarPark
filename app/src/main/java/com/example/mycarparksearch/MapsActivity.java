@@ -125,25 +125,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LocationCallback locationCB = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
-            Log.i("Callback","Callback triggered!");
-            List<Location> locationList = locationResult.getLocations();
-            if (locationList.size() > 0) {
-                //The last location in the list is the newest
-                Location location = locationList.get(locationList.size() - 1);
-                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
-                currentLocation = location;
+            super.onLocationResult(locationResult);
+            for (Location locationX : locationResult.getLocations()) {
+                //Update UI with location data
+                if (locationX != null) {
+                    Location location = locationX;
+                    Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                    currentLocation = location;
 
-                if (currentLocationMarker != null) currentLocationMarker.remove();
+                    if (currentLocationMarker != null) currentLocationMarker.remove();
 
-                //Place current location marker
-                LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
-                currentLocationMarker = mMap.addMarker((markerOptions));
-                currentLocationMarker.setPosition(latLng);
-                if (!firstTime) {
-                    firstTime = true;
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    //Place current location marker
+                    LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                    MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
+                    currentLocationMarker = mMap.addMarker((markerOptions));
+                    currentLocationMarker.setPosition(latLng);
+                    if (!firstTime) {
+                        firstTime = true;
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    }
                 }
             }
         }
@@ -394,13 +395,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
-                        location.setLatitude(1.276307);
-                        location.setLongitude(103.840811);
                         currentLocation = location;
                         Toast.makeText(getApplicationContext(), currentLocation.getLatitude()
                                 +","+currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
                         SupportMapFragment supportMapFragment = (SupportMapFragment)
                                 getSupportFragmentManager().findFragmentById(R.id.google_map);
+                        showLastLocation();
                     }
                 }
             });
@@ -432,7 +432,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.clmarker));
             mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-            currentLocationMarker = mMap.addMarker((markerOptions));
+            currentLocationMarker.setPosition(latLng);
         } catch (Exception e) {
             Log.i("showLastLocation", "Error in showLastLocation");
         }
@@ -496,7 +496,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRQ = new LocationRequest();
         locationRQ.setInterval(10000);
         locationRQ.setFastestInterval(3000);
-        locationRQ.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRQ.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         if (!isOnline(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Internet not connected.", Toast.LENGTH_SHORT).show();
@@ -515,7 +515,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
-                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, null);
                 ActivityCompat.requestPermissions(this, new String[]
                         {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
                 fetchLastLocation();
@@ -523,7 +523,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 showLastLocation();
             }
             else {
-                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, Looper.getMainLooper());
+                fusedLocationProviderClient.requestLocationUpdates(locationRQ, locationCB, null);
                 //mMap.setMyLocationEnabled(true);
                 fetchLastLocation();
                 updateLastLocation();
@@ -755,6 +755,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
         infotext.setVisibility(View.VISIBLE);
+        destinationMarker.remove();
+        drawRoute(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+
         infobutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
