@@ -751,6 +751,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             destinationMarker.remove();
             destinationMarker = null;
         }
+      
         drawRoute(marker.getPosition());
 
         infobutton.setOnClickListener(new View.OnClickListener() {
