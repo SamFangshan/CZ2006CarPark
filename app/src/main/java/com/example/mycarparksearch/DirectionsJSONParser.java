@@ -57,6 +57,8 @@ public class DirectionsJSONParser {
         return routes;
     }
 
+    // Self-written JSON interpreter.
+    // Parses Google Directions JSON API and pulls out all the directions in plaintext in a List<String>
     public List<String> parseDirections(JSONObject jObject) {
         List<String> routes = new ArrayList<>() ;
 
@@ -97,6 +99,7 @@ public class DirectionsJSONParser {
     /**
      * Method to decode polyline points
      * Courtesy : jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
+     * decodes a polyline used by Google Maps into a list of LatLng objects
      * */
     private List<LatLng> decodePoly(String encoded) {
 

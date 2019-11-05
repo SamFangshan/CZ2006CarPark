@@ -23,6 +23,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
+/*
+This is the activity that will display the directions obtained by the Google API in text
+ */
 public class ShowDirectionsActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -31,6 +34,7 @@ public class ShowDirectionsActivity extends AppCompatActivity {
     private LinearLayout insideScrollView;
     private Location currentLocation;
 
+    // On create function. This code runs at start and gathers the extra data
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,11 +45,12 @@ public class ShowDirectionsActivity extends AppCompatActivity {
 
         header = findViewById(R.id.toXTextView);
         header.setText("To " + getIntent().getStringExtra(MapsActivity.CAR_PARK_NO));
-        insideScrollView = findViewById(R.id.insideScrollView);
+        insideScrollView = findViewById(R.id.insideScrollView); // insideScrollView is a view inside the scrollView that is meant to contain all the instructions
         insideScrollView.removeAllViews();
 
         Task<Location> task = fusedLocationProviderClient.getLastLocation();
 
+        // On success listener waits for the task to succeed, then runs the code inside it
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
@@ -180,6 +185,8 @@ public class ShowDirectionsActivity extends AppCompatActivity {
         }
     }
 
+    // A piece of code that forms the Google API directions URL. This code needs to be in the Activity class as it relies on a getString function
+    // getString functions require the parent class to extend an Activity interface
     private String getDirectionsUrl(LatLng origin,LatLng dest){
 
         // Origin of route
