@@ -55,5 +55,8 @@
     <string name="shorttermparking">short term parking</string>
     <string name="freeparking">free parking</string>
     <string name="nightparking">night parking</string>
+    <string name="blank">Blank</string>
+    <string name="locationNotFoundText">Current location not found</string>
+    <string name="error">Error</string>
     <!--If there are issues with a key, replace the key here and also in google_maps_api.xml-->
 </resources>

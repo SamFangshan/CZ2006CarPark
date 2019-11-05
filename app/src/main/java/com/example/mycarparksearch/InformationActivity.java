@@ -33,7 +33,7 @@ public class InformationActivity extends AppCompatActivity {
     private Drawable likeDrawable;
     private ImageButton commentButton;
     private ImageButton directionsButton;
-
+    private ImageButton saveButton;
     private TextView carParkNoText;
     private TextView addressText;
     private TextView carParkTypeText;
@@ -103,13 +103,20 @@ public class InformationActivity extends AppCompatActivity {
             }
         });
 
+        saveButton = findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                performSaveButton();
+            }
+        });
+
         directionsButton = findViewById(R.id.directionsButton);
         directionsButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                performDirectionsButton();
-            }
+            public void onClick(View v) { performDirectionsButton(); }
         });
+
     }
 
     private void performViewMapButton() {
@@ -138,10 +145,18 @@ public class InformationActivity extends AppCompatActivity {
         InformationActivity.this.startActivityForResult(intent, 1);
     }
 
-    private void performDirectionsButton() {
+    private void performSaveButton() {
         //temp
         Intent intent = new Intent(InformationActivity.this, SaveCarparkActivity.class);
         intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        InformationActivity.this.startActivityForResult(intent, 1);
+    }
+
+    private void performDirectionsButton() {
+        Intent intent = new Intent(InformationActivity.this, ShowDirectionsActivity.class);
+        intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
+        intent.putExtra(MapsActivity.CAR_PARK_LAT, carpark.getInformation(context.getString(R.string.xCoord)));
+        intent.putExtra(MapsActivity.CAR_PARK_LON, carpark.getInformation(context.getString(R.string.yCoord)));
         InformationActivity.this.startActivityForResult(intent, 1);
     }
 

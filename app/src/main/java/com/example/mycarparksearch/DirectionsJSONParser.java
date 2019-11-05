@@ -21,7 +21,6 @@ public class DirectionsJSONParser {
         JSONArray jSteps = null;
 
         try {
-
             jRoutes = jObject.getJSONArray("routes");
 
             /** Traversing all routes */
@@ -55,6 +54,43 @@ public class DirectionsJSONParser {
             e.printStackTrace();
         }catch (Exception e){
         }
+        return routes;
+    }
+
+    public List<String> parseDirections(JSONObject jObject) {
+        List<String> routes = new ArrayList<>() ;
+
+        JSONArray jRoutes = null;
+        JSONArray jLegs = null;
+        JSONArray jSteps = null;
+
+        try {
+            jRoutes = jObject.getJSONArray("routes");
+
+            /** Traversing all routes */
+            for(int i = 0; i < jRoutes.length(); i++){
+                jLegs = ((JSONObject)jRoutes.get(i)).getJSONArray("legs");
+                List path = new ArrayList<HashMap<String, String>>();
+
+                /** Traversing all legs */
+                for(int j = 0; j < jLegs.length(); j++){
+                    jSteps = ( (JSONObject)jLegs.get(j)).getJSONArray("steps");
+
+                    /** Traversing all steps */
+                    for(int k = 0; k < jSteps.length(); k++){
+                        String polyline = "";
+                        polyline = (String)((JSONObject)jSteps.get(k)).get("html_instructions");
+
+                        polyline = android.text.Html.fromHtml(polyline).toString();
+                        routes.add(polyline);
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }catch (Exception e){
+        }
+
         return routes;
     }
 

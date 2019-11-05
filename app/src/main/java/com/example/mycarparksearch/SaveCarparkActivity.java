@@ -28,6 +28,8 @@ import java.util.StringTokenizer;
 public class SaveCarparkActivity extends AppCompatActivity {
     public static final String DAYS = "com.example.mycarparksearch.DAYS";
     public static final String NAME = "com.example.mycarparksearch.NAME";
+    public static final String TIME_LEFT = "com.example.mycarparksearch.TIME_LEFT";
+    public static final String TIME_TRIGGER = "com.example.mycarparksearch.TIME_TRIGGER";
     private static final int TIME = 0;
     private static final int MINUTE = 1;
     private TimePickerDialog.OnTimeSetListener time_listener;
@@ -134,10 +136,12 @@ public class SaveCarparkActivity extends AppCompatActivity {
         intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
         intent.putExtra(SaveCarparkActivity.NAME, name);
         intent.putExtra(SaveCarparkActivity.DAYS, daysClicked);
+        intent.putExtra(SaveCarparkActivity.TIME_LEFT, notifyText.getText());
+        intent.putExtra(SaveCarparkActivity.TIME_TRIGGER, timeText.getText());
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 100, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES/15, pendingIntent);
     }
 
     private Dialog createDialog(int id) {
