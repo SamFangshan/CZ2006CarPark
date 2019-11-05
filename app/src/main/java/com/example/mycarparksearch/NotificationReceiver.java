@@ -20,6 +20,9 @@ import java.util.concurrent.ExecutionException;
 
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
+/**
+ * A class that defines the behavior when a notification needs to be pushed
+ */
 public class NotificationReceiver extends BroadcastReceiver {
     private String carParkNo;
     private Context context;
@@ -29,13 +32,10 @@ public class NotificationReceiver extends BroadcastReceiver {
         carParkNo = intent.getStringExtra(MapsActivity.CAR_PARK_NO);
         String name = intent.getStringExtra(SaveCarparkActivity.NAME);
         String days = intent.getStringExtra(SaveCarparkActivity.DAYS);
-        String timeLeft = intent.getStringExtra(SaveCarparkActivity.TIME_LEFT);
-        String timeTrigger = intent.getStringExtra(SaveCarparkActivity.TIME_TRIGGER);
         this.context = context;
 
         boolean isDayToSend = checkIsDayToSend(days);
-        boolean isTimeToSend = checkIsTimeToSend(timeTrigger, timeLeft);
-        if (!isDayToSend || !isTimeToSend) {
+        if (!isDayToSend) {
             return;
         }
 
@@ -107,20 +107,6 @@ public class NotificationReceiver extends BroadcastReceiver {
             }
         }
         return isDayToSend;
-    }
-
-    private boolean checkIsTimeToSend(String timeTrigger, String timeLeft) {
-        Calendar calendar = Calendar.getInstance();
-        StringTokenizer st = new StringTokenizer(timeLeft, ":");
-        st.nextToken();
-        int minutes = Integer.parseInt(st.nextToken());
-        StringTokenizer st2 = new StringTokenizer(timeTrigger, ":");
-        if ( Integer.parseInt(st2.nextToken()) - calendar.get(Calendar.HOUR_OF_DAY) >= 1)
-            return false;
-        else {
-            int minutesTrigger = Integer.parseInt(st2.nextToken());
-            return ((minutesTrigger - calendar.get(Calendar.MINUTE)) <= minutes && (minutesTrigger - calendar.get(Calendar.MINUTE)) >= 0);
-        }
     }
 
     private class GetContentText extends AsyncTask {

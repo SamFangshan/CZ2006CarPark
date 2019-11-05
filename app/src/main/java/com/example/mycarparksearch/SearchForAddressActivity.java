@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Interface class for searching car parks
+ */
 public class SearchForAddressActivity extends AppCompatActivity {
     private ConstraintLayout searchUI;
     private EditText carparkEditText;

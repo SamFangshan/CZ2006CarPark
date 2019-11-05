@@ -11,6 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 
+/**
+ * Interface class for users to provide comments
+ */
 public class CommentActivity extends AppCompatActivity {
     private TextView carParkNoText;
     private RatingBar ratingBar;

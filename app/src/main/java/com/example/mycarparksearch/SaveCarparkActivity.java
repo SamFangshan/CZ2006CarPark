@@ -25,6 +25,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.StringTokenizer;
 
+/**
+ * Interface class for saving car parks for notification
+ */
 public class SaveCarparkActivity extends AppCompatActivity {
     public static final String DAYS = "com.example.mycarparksearch.DAYS";
     public static final String NAME = "com.example.mycarparksearch.NAME";
@@ -126,18 +129,16 @@ public class SaveCarparkActivity extends AppCompatActivity {
         }
         long diff = timeDate.getTime() - notifyByDate.getTime();
         long diffHours = diff / (60 * 60 * 1000) % 24;
-        long diffDays = diff / (24 * 60 * 60 * 1000);
+        long diffMinutes = diff / (60 * 1000) % 60;
 
         Calendar calender = Calendar.getInstance();
         calender.set(Calendar.HOUR_OF_DAY, (int)diffHours);
-        calendar.set(Calendar.MINUTE, (int)diffDays);
+        calendar.set(Calendar.MINUTE, (int)diffMinutes);
 
         Intent intent = new Intent(getApplicationContext(), NotificationReceiver.class);
         intent.putExtra(MapsActivity.CAR_PARK_NO, carParkNo);
         intent.putExtra(SaveCarparkActivity.NAME, name);
         intent.putExtra(SaveCarparkActivity.DAYS, daysClicked);
-        intent.putExtra(SaveCarparkActivity.TIME_LEFT, notifyText.getText());
-        intent.putExtra(SaveCarparkActivity.TIME_TRIGGER, timeText.getText());
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 100, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);

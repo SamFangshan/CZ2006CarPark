@@ -18,6 +18,9 @@ import com.google.android.material.tabs.TabLayout;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Interface class to display information regarding a car park.
+ */
 public class InformationActivity extends AppCompatActivity {
     private static final int CAR = 0;
     private static final int MOTOR = 1;

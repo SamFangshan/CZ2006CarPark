@@ -64,6 +64,9 @@ import java.util.concurrent.ExecutionException;
 import static com.example.mycarparksearch.R.id.save_carpark;
 import static com.example.mycarparksearch.R.id.search_carpark;
 
+/**
+ * Main interface class, which is based on Google Maps
+ */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;

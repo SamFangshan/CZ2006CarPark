@@ -19,9 +19,10 @@ public class CarparkSQLControl extends SQLControl {
         this.context = context;
     }
 
-    /*
-    To get all CarParkNo and car park coordinates for displaying car park locations on Google Maps
-    Return an ArrayList of CarparkEntity
+    /**
+     * To get all CarParkNo and car park coordinates for displaying car park locations on Google Maps
+     * @return ArrayList of CarparkEntity
+     * @throws SQLException
      */
     public ArrayList<CarparkEntity> getAllCarparkLocations() throws SQLException {
         if (!isDBConnected()) {
@@ -46,6 +47,12 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
+    /**
+     * Search for car parks based on key words (car park number / car park address)
+     * @param keywords
+     * @return ArrayList of CarparkEntity
+     * @throws SQLException
+     */
     public ArrayList<CarparkEntity> queryCarparks(String keywords) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
@@ -78,6 +85,18 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
+    /**
+     * Search for car parks based on key words (car park number / car park address)
+     * with filters
+     * @param keywords
+     * @param type
+     * @param system
+     * @param short_term
+     * @param free
+     * @param night
+     * @return ArrayList of CarparkEntity
+     * @throws SQLException
+     */
     public ArrayList<CarparkEntity> queryCarparks(String keywords,
                                                              String type, String system,
                                                              String short_term, String free,
@@ -136,9 +155,11 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
-    /*
-    To get detailed car park information of a car park with a specific carParkNo
-    Return a CarparkEntity
+    /**
+     * To get detailed car park information of a car park with a specific carParkNo
+     * @param carParkNo
+     * @return carpark entity
+     * @throws SQLException
      */
     public CarparkEntity queryCarparkFullInfo(String carParkNo) throws SQLException {
         if (!isDBConnected()) {
