@@ -20,6 +20,9 @@ import java.util.concurrent.ExecutionException;
 
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
+/**
+ * A class that defines the behavior when a notification needs to be pushed
+ */
 public class NotificationReceiver extends BroadcastReceiver {
     private String carParkNo;
     private Context context;

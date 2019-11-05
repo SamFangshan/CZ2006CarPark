@@ -25,6 +25,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.StringTokenizer;
 
+/**
+ * Interface class for saving car parks for notification
+ */
 public class SaveCarparkActivity extends AppCompatActivity {
     public static final String DAYS = "com.example.mycarparksearch.DAYS";
     public static final String NAME = "com.example.mycarparksearch.NAME";
