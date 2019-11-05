@@ -20,5 +20,5 @@
         android:title="@string/mechanised_surface"/>
     <item
         android:id="@+id/mechanised_carpark"
-        android:title="@string/mechanised_surface"/>
+        android:title="@string/mechanised_carpark"/>
 </menu>
