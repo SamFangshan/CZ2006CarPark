@@ -5,7 +5,7 @@
         android:title="Saved favorites" />
     <item
         android:id="@+id/save_carpark"
-        android:title="Saved carparks"/>
+        android:title="Carpark Notifications"/>
     <item
         android:id="@+id/search_carpark"
         android:title="Search carparks"/>
