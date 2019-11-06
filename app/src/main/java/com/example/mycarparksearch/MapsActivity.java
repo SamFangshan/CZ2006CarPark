@@ -60,7 +60,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import static com.example.mycarparksearch.R.id.info;
 import static com.example.mycarparksearch.R.id.save_carpark;
 import static com.example.mycarparksearch.R.id.search_carpark;
 
@@ -529,9 +532,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 bottomAppBar = findViewById(R.id.bottomAppBar);
                 infobutton = findViewById(R.id.infobutton);
                 infotext = findViewById(R.id.infotext);
-                bottomAppBar.setVisibility(View.GONE);
-                infobutton.setVisibility(View.GONE);
-                infotext.setVisibility(View.GONE);
+                bottomAppBar.setVisibility(View.VISIBLE);
+
+                infobutton.setBackgroundTintList(null);
+                infobutton.setVisibility(View.VISIBLE);
+                infobutton.setBackgroundResource(R.drawable.navigation);
+                infotext.setVisibility(View.VISIBLE);
+                infotext.setText(R.string.findNearestAvailableCarpark);
+
                 if (destinationMarker == null) {
                     MarkerOptions options = new MarkerOptions();
                     options.position(latLng);
@@ -543,8 +551,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 // Getting URL to the Google Directions API
                 drawRoute(latLng);
+
+                infobutton.setOnClickListener(null);
+
+                infobutton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        bottomAppBar.setVisibility(View.GONE);
+                        infobutton.setVisibility(View.GONE);
+                        infotext.setVisibility(View.GONE);
+
+                        // find nearest carpark
+                        try {
+                            CarparkEntity ce = new MapsActivity.FindNearestCarpark().execute(destinationMarker.getPosition()).get();
+                            Toast.makeText(getApplicationContext(), "Nearest carpark is " + ce.getInformation(context.getString(R.string.carParkNo)), Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Failed to get car park information!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         });
+    }
+
+    private class FindNearestCarpark extends AsyncTask<LatLng, Void, CarparkEntity> {
+        @Override
+        protected CarparkEntity doInBackground(LatLng... latlngs) {
+            return findNearestCarpark(latlngs[0]);
+        }
+    }
+
+    private CarparkEntity findNearestCarpark(LatLng here) {
+        CarparkSQLControl con = new CarparkSQLControl(context.getString(R.string.sshHost),
+                context.getString(R.string.sshUsername), context.getString(R.string.sshPassword),
+                context.getString(R.string.dbHost), Integer.parseInt(context.getString(R.string.dbPort)),
+                context.getString(R.string.dbName), context.getString(R.string.dbUsername),
+                context.getString(R.string.dbPassword), context);
+        CarparkEntity carpark;
+        try {
+            carpark = con.findNearestCarpark(here);
+            con.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+        return carpark;
     }
 
     private void drawRoute(LatLng latLng){
@@ -746,13 +798,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         infobutton.setBackgroundTintList(null);
         bottomAppBar.setVisibility(View.VISIBLE);
         infobutton.setVisibility(View.VISIBLE);
+        infobutton.setBackgroundResource(R.drawable.info);
         infotext.setVisibility(View.VISIBLE);
+        infotext.setText(R.string.detailedInfo);
         if (destinationMarker != null) {
             destinationMarker.remove();
             destinationMarker = null;
         }
       
         drawRoute(marker.getPosition());
+
+        infobutton.setOnClickListener(null);
 
         infobutton.setOnClickListener(new View.OnClickListener() {
             @Override

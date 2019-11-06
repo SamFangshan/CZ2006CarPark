@@ -3,6 +3,7 @@ package com.example.mycarparksearch;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.icu.text.IDNA;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -173,6 +174,7 @@ public class InformationActivity extends AppCompatActivity {
         CarparkEntity carpark;
         try {
             carpark = con.queryCarparkFullInfo(carParkNo);
+            con.close();
         } catch (SQLException e) {
             Toast.makeText(getApplicationContext(), "Failed to get car park information!", Toast.LENGTH_SHORT).show();
             return null;

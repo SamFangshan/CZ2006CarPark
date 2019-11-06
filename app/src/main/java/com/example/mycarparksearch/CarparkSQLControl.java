@@ -3,6 +3,8 @@ package com.example.mycarparksearch;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -136,9 +138,39 @@ public class CarparkSQLControl extends SQLControl {
         return carparkList;
     }
 
+<<<<<<< Updated upstream
     /*
     To get detailed car park information of a car park with a specific carParkNo
     Return a CarparkEntity
+=======
+    public CarparkEntity findNearestCarpark(LatLng here) throws SQLException {
+        if (!isDBConnected()) {
+            if (!setDBConnection()) {
+                throw new SQLException("Connection to database failed!");
+            }
+        }
+        String sql = "SELECT HDBCarPark.carParkNo, ((xCoord - " +  here.latitude + ") *  (xCoord - " +  here.latitude + ") + " +
+                "(yCoord - " + here.longitude + ")" + "*(yCoord - " + here.longitude + ")) AS squareDiff" +
+                " FROM HDBCarPark WHERE HDBCarPark.carParkNo IN (SELECT carParkNo FROM HDBCarParkAvail) " +
+                " ORDER BY squareDiff";
+        ResultSet result = query(sql);
+        ArrayList<CarparkEntity> carparkList = new ArrayList<CarparkEntity>();
+        while (true) {
+            if (!result.next()) break;
+            HashMap<String, String> carMap = new HashMap<String, String>();
+            carMap.put(context.getString(R.string.carParkNo), result.getString(context.getString(R.string.carParkNo)));
+            carMap.put("context.getString(R.string.squareDiff))", result.getString(context.getString(R.string.squareDiff)));
+            return new CarparkEntity(carMap);
+        }
+        throw new SQLException("No data found!");
+    }
+
+    /**
+     * To get detailed car park information of a car park with a specific carParkNo
+     * @param carParkNo
+     * @return carpark entity
+     * @throws SQLException
+>>>>>>> Stashed changes
      */
     public CarparkEntity queryCarparkFullInfo(String carParkNo) throws SQLException {
         if (!isDBConnected()) {
