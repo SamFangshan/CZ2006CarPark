@@ -137,12 +137,7 @@ public class CarparkSQLControl extends SQLControl {
 
         return carparkList;
     }
-
-<<<<<<< Updated upstream
-    /*
-    To get detailed car park information of a car park with a specific carParkNo
-    Return a CarparkEntity
-=======
+    
     public CarparkEntity findNearestCarpark(LatLng here) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {
@@ -170,7 +165,6 @@ public class CarparkSQLControl extends SQLControl {
      * @param carParkNo
      * @return carpark entity
      * @throws SQLException
->>>>>>> Stashed changes
      */
     public CarparkEntity queryCarparkFullInfo(String carParkNo) throws SQLException {
         if (!isDBConnected()) {
