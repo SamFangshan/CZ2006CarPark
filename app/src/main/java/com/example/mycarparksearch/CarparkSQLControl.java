@@ -137,7 +137,7 @@ public class CarparkSQLControl extends SQLControl {
 
         return carparkList;
     }
-    
+
     public CarparkEntity findNearestCarpark(LatLng here) throws SQLException {
         if (!isDBConnected()) {
             if (!setDBConnection()) {

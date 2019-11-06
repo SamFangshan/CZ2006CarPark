@@ -557,14 +557,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 infobutton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        bottomAppBar.setVisibility(View.GONE);
-                        infobutton.setVisibility(View.GONE);
-                        infotext.setVisibility(View.GONE);
 
                         // find nearest carpark
                         try {
                             CarparkEntity ce = new MapsActivity.FindNearestCarpark().execute(destinationMarker.getPosition()).get();
-                            Toast.makeText(getApplicationContext(), "Nearest carpark is " + ce.getInformation(context.getString(R.string.carParkNo)), Toast.LENGTH_LONG).show();
+                            //Toast.makeText(getApplicationContext(), "Nearest carpark is " + ce.getInformation(context.getString(R.string.carParkNo)), Toast.LENGTH_LONG).show();
+                            bottomAppBar.setVisibility(View.GONE);
+                            infobutton.setVisibility(View.GONE);
+                            infotext.setVisibility(View.GONE);
+                            Intent intent = new Intent(MapsActivity.this, InformationActivity.class);
+                            intent.putExtra(CAR_PARK_NO, ce.getInformation(context.getString(R.string.carParkNo)));
+                            MapsActivity.this.startActivityForResult(intent, 1);
                         } catch (Exception e) {
                             e.printStackTrace();
                             Toast.makeText(getApplicationContext(), "Failed to get car park information!", Toast.LENGTH_SHORT).show();
